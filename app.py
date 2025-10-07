@@ -486,7 +486,7 @@ if modo_rapido:
                 unsafe_allow_html=True)
 
 # --- KPIS PRINCIPALES MEJORADOS ---
-st.markdown("## 📊 KPIs Clave de Desempeño")
+st.markdown("## 📊 Métricas / KPIs")
 
 # Crear las 4 columnas
 col1, col2, col3, col4 = st.columns(4)
