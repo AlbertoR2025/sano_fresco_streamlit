@@ -133,72 +133,67 @@ def crear_grafico_distribucion_clientes(clientes_df):
 
     segmentos = clientes_df['segmento'].value_counts()
     
-    # Colores profesionales más vibrantes
+    # Colores exactos como en la imagen de muestra
     colores_mapa = {
         'Perdido': '#06D6A0',      # Verde agua
         'En Riesgo': '#2E86AB',    # Azul
         'VIP': '#FFD166',          # Amarillo dorado
         'Recurrentes': '#EF476F',  # Rojo/rosa
         'Unica Compra': '#6C757D', # Gris
-        'Bajo': '#6C757D',
-        'Medio': '#FFD166',
-        'Alto': '#2E86AB',
-        'Premium': '#06D6A0'
+        'Bajo': '#545B62',        # Gris oscuro como en la imagen
+        'Medio': '#FFD166',        # Amarillo como en la imagen
+        'Alto': '#118AB2',         # Azul turquesa como en la imagen
+        'Premium': '#06D6A0'       # Verde turquesa como en la imagen
     }
     
     colores_ordenados = [colores_mapa.get(seg, '#118AB2') for seg in segmentos.index]
     
-    # Crear gráfico DONUT PREMIUM con efecto Salesforce
+    # Crear gráfico DONUT PREMIUM con efecto mejorado
     fig = go.Figure(data=[go.Pie(
         labels=segmentos.index,
         values=segmentos.values,
-        hole=0.45,  # Efecto donut más pronunciado
         marker=dict(
             colors=colores_ordenados,
             line=dict(color='white', width=3)
         ),
-        hoverinfo="label+percent+value",
-        textinfo="percent",
-        textposition="inside",
-        textfont=dict(size=15, color="white"),
-        hovertemplate='<b>%{label}</b><br>' +
-                      'Clientes: %{value:,}<br>' +
-                      'Porcentaje: %{percent}<br>' +
-                      '<extra></extra>',
         pull=[0.05 if i == 0 else 0 for i in range(len(segmentos))]  # Destacar el primero
     )])
     
-    # Agregar texto central premium
-    total_clientes = segmentos.sum()
-    fig.add_annotation(
-        text=f"<b>{total_clientes:,}</b><br>Clientes",
-        x=0.5, y=0.5,
-        font=dict(size=20, color='#2E86AB', family='Arial Black'),
-        showarrow=False
+    # Aplicar configuración donut premium
+    fig.update_traces(
+        hole=0.45,
+        hoverinfo="label+percent+value",
+        textinfo="percent",
+        textposition="inside",
+        textfont=dict(size=15, color="white")
     )
     
-    # Layout premium con estilo Salesforce
+    # Layout premium con texto centrado y fondo transparente
+    total_clientes = segmentos.sum()
     fig.update_layout(
+        annotations=[dict(text=f'{total_clientes:,}<br>Clientes', x=0.5, y=0.5, font_size=16, showarrow=False, font_color='#2C3E50')],
         title=dict(
             text="Distribución de Clientes por Segmento",
-            font=dict(size=18, color='#2E86AB'),
-            x=0.5
+            x=0.5,
+            xanchor='center',
+            font=dict(size=20, color='#2C3E50')
         ),
         showlegend=True,
         legend=dict(
-            orientation="h", 
+            orientation="h",
             y=-0.2,
-            font=dict(size=12),
-            bgcolor='rgba(255,255,255,0.8)',
-            bordercolor='#2E86AB',
-            borderwidth=1
+            x=0.5,
+            xanchor='center',
+            bgcolor='rgba(255,255,255,0.7)',
+            bordercolor='#A9D9E8',
+            borderwidth=1,
+            font=dict(color='#333333')
         ),
-        template="plotly_white",
+        template="plotly",
         height=420,
-        font=dict(family="Arial, sans-serif"),
-        margin=dict(l=50, r=50, t=80, b=80),
         plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)'
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(family="Arial, sans-serif")
     )
     
     return fig
