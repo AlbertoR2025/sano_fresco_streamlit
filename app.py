@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 # Configuración básica
 st.set_page_config(
@@ -22,17 +23,56 @@ st.sidebar.title("Panel de Control")
 st.write("🎉 ¡Dashboard funcionando correctamente!")
 st.write("📊 Esta es una versión de prueba para verificar que Streamlit Cloud funciona.")
 
-# Métricas de prueba
-col1, col2, col3 = st.columns(3)
+# Cargar datos con manejo de errores
+try:
+    st.write("🔄 Cargando datos...")
+    
+    kpis_df = pd.read_csv('data/kpis_diarios.csv')
+    productos_df = pd.read_csv('data/analisis_productos.csv')
+    clientes_df = pd.read_csv('data/analisis_clientes.csv')
+    
+    st.success("✅ Datos cargados correctamente")
+    
+    # Mostrar información básica
+    st.write(f"📊 KPIs: {len(kpis_df)} registros")
+    st.write(f"🛒 Productos: {len(productos_df)} registros")
+    st.write(f"👥 Clientes: {len(clientes_df)} registros")
+    
+    # Calcular métricas reales
+    ventas_totales = kpis_df['ventas_totales'].sum()
+    pedidos_totales = kpis_df['pedidos_unicos'].sum()
+    clientes_unicos = kpis_df['clientes_unicos'].sum()
+    
+    # Métricas dinámicas
+    col1, col2, col3 = st.columns(3)
 
-with col1:
-    st.metric("💰 Ventas", "$1,000,000")
+    with col1:
+        st.metric("💰 Ventas Totales", f"${ventas_totales:,.0f}")
 
-with col2:
-    st.metric("🛒 Pedidos", "5,000")
+    with col2:
+        st.metric("🛒 Pedidos Totales", f"{pedidos_totales:,.0f}")
 
-with col3:
-    st.metric("👥 Clientes", "1,200")
+    with col3:
+        st.metric("👥 Clientes Únicos", f"{clientes_unicos:,.0f}")
+    
+    # Mostrar datos
+    st.subheader("📋 Vista Previa de Datos KPIs")
+    st.dataframe(kpis_df.head())
+    
+except Exception as e:
+    st.error(f"❌ Error cargando datos: {str(e)}")
+    
+    # Métricas de prueba como fallback
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("💰 Ventas", "$1,000,000")
+
+    with col2:
+        st.metric("🛒 Pedidos", "5,000")
+
+    with col3:
+        st.metric("👥 Clientes", "1,200")
 
 # Footer
 st.markdown("""
