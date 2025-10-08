@@ -1,2 +1,2 @@
-# Archivo de paquetes del sistema para Streamlit Cloud
-# Este archivo puede ayudar con dependencias del sistema
+python3-dev
+python3-pip
