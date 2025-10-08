@@ -4,11 +4,26 @@ import sys
 from pathlib import Path
 import io
 import base64
+import plotly.graph_objects as go
 
 # Agregar utils al path
 sys.path.append(str(Path(__file__).parent))
 
-# Importaciones de métricas (sin visualizaciones que usan Plotly)
+# Importaciones corregidas - SIN crear_analisis_estacionalidad
+from utils.visualizations import (
+    crear_grafico_tendencia_ventas,
+    crear_grafico_distribucion_clientes,
+    crear_grafico_top_productos,
+    crear_heatmap_ventas_mensual,
+    crear_gauge_chart,
+    crear_mapa_correlaciones,
+    crear_waterfall_contribucion,
+    crear_sankey_segmentos,
+    crear_treemap_productos,
+    crear_grafico_pareto,
+    crear_grafico_progreso_objetivos
+)
+
 from utils.metrics import (
     calcular_metricas_globales,
     calcular_crecimiento,
@@ -206,6 +221,26 @@ st.markdown("""
         border-left: 5px solid #118AB2;
     }
 
+    /* Ajuste de las métricas de Streamlit dentro de las tarjetas */
+    .metric-card [data-testid="stMetricValue"] {
+        font-size: 2.2rem !important;
+        font-weight: 700 !important;
+        color: #2E86AB !important;
+    }
+
+    .metric-card [data-testid="stMetricLabel"] {
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        color: #6C757D !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .metric-card [data-testid="stMetricDelta"] {
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+    }
+
     /* ===== TABS MEJORADOS ===== */
     .stTabs [data-baseweb="tab-list"] {
         gap: 1.5rem;
@@ -369,6 +404,17 @@ st.markdown("""
         line-height: 1.2 !important;
     }
 
+    # Dentro de tu st.markdown con el CSS, agrega esto al final:
+
+    /* ===== KPI CARDS MEJORADAS (Todo en una tarjeta) ===== */
+
+    /* Sidebar más limpio */
+    .css-1d391kg {
+        background-color: #FFFFFF;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+        padding: 1rem !important;
+    }
+
     /* Botón de descarga con gradiente */
     .stDownloadButton > button {
         background: linear-gradient(135deg, #06D6A0 0%, #059669 100%) !important;
@@ -453,6 +499,8 @@ with st.spinner('🔄 Cargando datos...'):
 if kpis is None or clientes is None or productos is None:
     st.error("No se pudieron cargar los datos. Verifica los archivos en la carpeta 'data/'.")
     st.stop()
+
+
 
 # Calcular métricas globales
 metricas = calcular_metricas_globales(kpis)
@@ -604,20 +652,23 @@ if not modo_rapido:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Evolución de Ventas")
-        st.line_chart(kpis_filtrado.set_index('fecha')['ventas_totales'])
+        st.plotly_chart(
+            crear_grafico_tendencia_ventas(kpis_filtrado),
+            use_container_width=True
+        )
 
     with col2:
-        st.subheader("Distribución de Clientes")
-        if 'segmento' in clientes_filtrados.columns:
-            segmentos = clientes_filtrados['segmento'].value_counts()
-            st.bar_chart(segmentos)
-        else:
-            st.metric("Total Clientes", f"{len(clientes_filtrados):,}")
+        st.plotly_chart(
+            crear_grafico_distribucion_clientes(clientes_filtrados),
+            use_container_width=True
+        )
 else:
     # En modo rápido, solo mostrar el gráfico principal
-    st.subheader("Evolución de Ventas")
-    st.line_chart(kpis_filtrado.set_index('fecha')['ventas_totales'])
+    st.plotly_chart(
+        crear_grafico_tendencia_ventas(kpis_filtrado),
+        use_container_width=True
+    )
+
 
 # --- ANÁLISIS DE PRODUCTOS MEJORADO ---
 st.markdown("## 🏆 Análisis Profundo de Productos")
@@ -627,103 +678,187 @@ if not modo_rapido:
         "📊 Top Ventas", 
         "🔥 Más Frecuentes", 
         "💎 Mayor Precio",
-        "📈 Análisis Pareto",
-        "📋 Detalles"
+        "💰 Cascada Contribución",
+        "📊 Análisis Pareto"
     ])
 
     with tab1:
-        st.subheader("Top 15 Productos por Ventas")
+        # Crear gráfico directamente con ordenamiento garantizado
         top_ventas = productos.nlargest(15, 'ventas_totales')
-        st.bar_chart(top_ventas.set_index('nombre_producto')['ventas_totales'])
+        fig = go.Figure(data=[
+            go.Bar(
+                y=top_ventas['nombre_producto'],
+                x=top_ventas['ventas_totales'],
+                orientation='h',
+                text=top_ventas['ventas_totales'],
+                texttemplate='<b>$%{text:,.0f}</b>',
+                textposition='outside',
+                marker=dict(
+                    color='#0891b2',  # Color del tema
+                    line=dict(color='#047857', width=3),  # Borde grueso para efecto
+                    # Efecto Power BI con esquinas redondeadas
+                    cornerradius=8  # Esquinas redondeadas para efecto moderno
+                )
+            )
+        ])
+        fig.update_layout(
+            xaxis_title='Ventas Totales ($)',
+            yaxis_title='',
+            height=500,
+            font=dict(size=12, family='Arial, sans-serif'),
+            margin=dict(l=60, r=60, t=40, b=60),
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            showlegend=False,
+            yaxis={'categoryorder':'total ascending'},
+            xaxis=dict(
+                gridcolor='rgba(0,0,0,0.1)',
+                showgrid=True
+            ),
+            # Efecto Power BI con sombra
+            barmode='group',
+            bargap=0.3
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
     with tab2:
-        st.subheader("Top 15 Productos Más Frecuentes")
+        # Crear gráfico directamente con ordenamiento garantizado
         top_pedidos = productos.nlargest(15, 'pedidos_unicos')
-        st.bar_chart(top_pedidos.set_index('nombre_producto')['pedidos_unicos'])
+        fig = go.Figure(data=[
+            go.Bar(
+                y=top_pedidos['nombre_producto'],
+                x=top_pedidos['pedidos_unicos'],
+                orientation='h',
+                text=top_pedidos['pedidos_unicos'],
+                texttemplate='<b>%{text:,.0f}</b>',
+                textposition='outside',
+                marker=dict(
+                    color='#06D6A0',  # Verde turquesa del tema
+                    line=dict(color='#047857', width=3),  # Borde grueso para efecto
+                    # Efecto Power BI con esquinas redondeadas
+                    cornerradius=8  # Esquinas redondeadas para efecto moderno
+                )
+            )
+        ])
+        fig.update_layout(
+            xaxis_title='Pedidos Únicos',
+            yaxis_title='',
+            height=500,
+            font=dict(size=12, family='Arial, sans-serif'),
+            margin=dict(l=60, r=60, t=40, b=60),
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            showlegend=False,
+            yaxis={'categoryorder':'total ascending'},
+            xaxis=dict(
+                gridcolor='rgba(0,0,0,0.1)',
+                showgrid=True
+            )
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
     with tab3:
-        st.subheader("Top 15 Productos por Precio")
+        # Crear gráfico directamente con ordenamiento garantizado
         top_precio = productos.nlargest(15, 'precio_promedio')
-        st.bar_chart(top_precio.set_index('nombre_producto')['precio_promedio'])
+        fig = go.Figure(data=[
+            go.Bar(
+                y=top_precio['nombre_producto'],
+                x=top_precio['precio_promedio'],
+                orientation='h',
+                text=top_precio['precio_promedio'],
+                texttemplate='<b>$%{text:.2f}</b>',
+                textposition='outside',
+                marker=dict(
+                    color='#059669',  # Verde del tema
+                    line=dict(color='#047857', width=3),  # Borde grueso para efecto
+                    # Efecto Power BI con esquinas redondeadas
+                    cornerradius=8  # Esquinas redondeadas para efecto moderno
+                )
+            )
+        ])
+        fig.update_layout(
+            xaxis_title='Precio Promedio ($)',
+            yaxis_title='',
+            height=500,
+            font=dict(size=12, family='Arial, sans-serif'),
+            margin=dict(l=60, r=60, t=40, b=60),
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            showlegend=False,
+            yaxis={'categoryorder':'total ascending'},
+            xaxis=dict(
+                gridcolor='rgba(0,0,0,0.1)',
+                showgrid=True
+            )
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
     with tab4:
-        st.subheader("Análisis Pareto (80/20)")
-        # Calcular contribución acumulada
-        productos_ordenados = productos.sort_values('ventas_totales', ascending=False)
-        productos_ordenados['ventas_acumuladas'] = productos_ordenados['ventas_totales'].cumsum()
-        productos_ordenados['porcentaje_acumulado'] = (productos_ordenados['ventas_acumuladas'] / productos_ordenados['ventas_totales'].sum()) * 100
-        
-        # Mostrar los primeros 20 productos
-        pareto_data = productos_ordenados.head(20)
-        st.bar_chart(pareto_data.set_index('nombre_producto')['porcentaje_acumulado'])
-        
-        # Mostrar estadísticas
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Productos que generan 80%", f"{len(pareto_data[pareto_data['porcentaje_acumulado'] <= 80]):,}")
-        with col2:
-            st.metric("Contribución 80%", f"{pareto_data[pareto_data['porcentaje_acumulado'] <= 80]['porcentaje_acumulado'].max():.1f}%")
-
-    with tab5:
-        st.subheader("Detalles Completos de Productos")
-        st.dataframe(
-            productos[['nombre_producto', 'ventas_totales', 'unidades_vendidas', 'precio_promedio', 'pedidos_unicos']].round(2),
+        st.plotly_chart(
+            crear_waterfall_contribucion(productos, 10),
             use_container_width=True
         )
+        st.info("💡 **Insight:** Este gráfico muestra cómo cada producto contribuye al total de ventas.")
+
+    with tab5:
+        st.plotly_chart(
+            crear_grafico_pareto(productos),
+            use_container_width=True
+        )
+        st.warning("⚠️ **Regla 80/20:** Identifica qué productos generan el 80% de tus ingresos.")
 else:
     # En modo rápido, solo mostrar pestañas esenciales
     tab1, tab2 = st.tabs(["📊 Top Ventas", "📈 Análisis Pareto"])
     
     with tab1:
-        st.subheader("Top 10 Productos por Ventas")
-        top_ventas = productos.nlargest(10, 'ventas_totales')
-        st.bar_chart(top_ventas.set_index('nombre_producto')['ventas_totales'])
+        st.plotly_chart(
+            crear_grafico_top_productos(productos, 'ventas_totales', 10),
+            use_container_width=True
+        )
     
     with tab2:
-        st.subheader("Análisis Pareto")
-        productos_ordenados = productos.sort_values('ventas_totales', ascending=False)
-        productos_ordenados['ventas_acumuladas'] = productos_ordenados['ventas_totales'].cumsum()
-        productos_ordenados['porcentaje_acumulado'] = (productos_ordenados['ventas_acumuladas'] / productos_ordenados['ventas_totales'].sum()) * 100
-        pareto_data = productos_ordenados.head(15)
-        st.bar_chart(pareto_data.set_index('nombre_producto')['porcentaje_acumulado'])
+        st.plotly_chart(
+            crear_grafico_pareto(productos),
+            use_container_width=True
+        )
 
-# --- ANÁLISIS ADICIONAL ---
-st.markdown("## 📊 Análisis Adicional")
+# --- VISUALIZACIONES AVANZADAS ---
+if not modo_rapido and mostrar_graficos_pesados:
+    st.markdown("---")
+    st.markdown("## 🗺️ Visualizaciones Avanzadas")
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric("Días de Operación", metricas_filtradas['dias_operacion'])
-    st.metric("Productos Únicos", len(productos))
-
-with col2:
-    st.metric("Ventas Promedio Diaria", f"${metricas_filtradas['ventas_totales']/metricas_filtradas['dias_operacion']:,.0f}")
-    st.metric("Pedidos Promedio Diario", f"{metricas_filtradas['pedidos_totales']/metricas_filtradas['dias_operacion']:,.0f}")
-
-with col3:
-    st.metric("Unidades Vendidas", f"{metricas_filtradas.get('unidades_vendidas', 0):,}")
-    st.metric("Productos por Pedido", f"{metricas_filtradas.get('items_promedio', 0):.1f}")
-
-# --- ANÁLISIS DE CLIENTES ---
-if not modo_rapido:
-    st.markdown("## 👥 Análisis de Clientes")
-    
     col1, col2 = st.columns(2)
-    
+
     with col1:
-        st.subheader("Distribución por Segmento")
-        if 'segmento' in clientes_filtrados.columns:
-            segmentos = clientes_filtrados['segmento'].value_counts()
-            st.bar_chart(segmentos)
-        else:
-            st.info("No hay información de segmentación disponible")
-    
+        with st.spinner('Generando diagrama Sankey...'):
+            st.plotly_chart(
+                crear_sankey_segmentos(clientes_filtrados),
+                use_container_width=True
+            )
+
     with col2:
-        st.subheader("Métricas de Clientes")
-        st.metric("Total Clientes", f"{len(clientes_filtrados):,}")
-        if 'valor_total' in clientes_filtrados.columns:
-            st.metric("Valor Promedio", f"${clientes_filtrados['valor_total'].mean():,.2f}")
-            st.metric("Cliente Más Valioso", f"${clientes_filtrados['valor_total'].max():,.2f}")
+        st.plotly_chart(
+            crear_treemap_productos(productos),
+            use_container_width=True
+        )
+
+# --- HEATMAP ---
+if not modo_rapido:
+    st.markdown("## 🗓️ Patrón de Ventas Semanal")
+    st.plotly_chart(
+        crear_heatmap_ventas_mensual(kpis_filtrado),
+        use_container_width=True
+    )
+
+# --- ANÁLISIS DE CORRELACIONES (AL FINAL) ---
+if not modo_rapido and mostrar_graficos_pesados:
+    st.markdown("---")
+    st.markdown("## 🔗 Mapa de Correlaciones")
+    with st.spinner('Calculando correlaciones...'):
+        st.plotly_chart(
+            crear_mapa_correlaciones(kpis_filtrado),
+            use_container_width=True
+        )
 
 # --- OBJETIVOS (AL FINAL) ---
 st.markdown("---")
@@ -732,38 +867,14 @@ st.markdown("## 🎯 Progreso vs Objetivos")
 # Objetivos más realistas basados en tus datos
 objetivos = {
     'ventas': 5000000,      # 5 millones
-    'pedidos': 250000,      # 250 mil pedidos
-    'clientes': 15000       # 15 mil clientes
+    'pedidos': 250000,      # 250 mil pedidos (ajustado)
+    'clientes': 15000       # 15 mil clientes (ajustado)
 }
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    progreso_ventas = (metricas_filtradas['ventas_totales'] / objetivos['ventas']) * 100
-    st.metric(
-        "Ventas Totales",
-        f"${metricas_filtradas['ventas_totales']:,.0f}",
-        f"{progreso_ventas:.1f}% del objetivo"
-    )
-    st.progress(min(progreso_ventas / 100, 1.0))
-
-with col2:
-    progreso_pedidos = (metricas_filtradas['pedidos_totales'] / objetivos['pedidos']) * 100
-    st.metric(
-        "Pedidos Totales",
-        f"{metricas_filtradas['pedidos_totales']:,}",
-        f"{progreso_pedidos:.1f}% del objetivo"
-    )
-    st.progress(min(progreso_pedidos / 100, 1.0))
-
-with col3:
-    progreso_clientes = (metricas_filtradas['clientes_unicos'] / objetivos['clientes']) * 100
-    st.metric(
-        "Clientes Únicos",
-        f"{metricas_filtradas['clientes_unicos']:,}",
-        f"{progreso_clientes:.1f}% del objetivo"
-    )
-    st.progress(min(progreso_clientes / 100, 1.0))
+st.plotly_chart(
+    crear_grafico_progreso_objetivos(metricas_filtradas, objetivos),
+    use_container_width=True
+)
 
 # --- FOOTER ---
 st.markdown("---")
