@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 
 # Configuración básica
 st.set_page_config(
@@ -8,7 +7,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Banner simple
+# Banner
 st.markdown("""
 <div style='text-align: center; padding: 2rem; background: linear-gradient(135deg, #2E86AB, #06D6A0); border-radius: 10px; margin-bottom: 2rem;'>
     <h1 style='color: white; margin: 0; font-size: 3rem;'>🥑 SANO Y FRESCO</h1>
@@ -16,44 +15,24 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar simple
+# Sidebar
 st.sidebar.title("Panel de Control")
 
-# Cargar datos con manejo de errores
-try:
-    st.write("🔄 Cargando datos...")
-    
-    kpis_df = pd.read_csv('data/kpis_diarios.csv')
-    productos_df = pd.read_csv('data/analisis_productos.csv')
-    clientes_df = pd.read_csv('data/analisis_clientes.csv')
-    
-    st.success("✅ Datos cargados correctamente")
-    
-    # Mostrar información básica
-    st.write(f"📊 KPIs: {len(kpis_df)} registros")
-    st.write(f"🛒 Productos: {len(productos_df)} registros")
-    st.write(f"👥 Clientes: {len(clientes_df)} registros")
-    
-    # Calcular métricas simples
-    ventas_totales = kpis_df['ventas_totales'].sum()
-    pedidos_totales = kpis_df['pedidos_unicos'].sum()
-    
-    # Mostrar métricas
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.metric("💰 Ventas Totales", f"${ventas_totales:,.0f}")
-    
-    with col2:
-        st.metric("🛒 Pedidos Totales", f"{pedidos_totales:,.0f}")
-    
-    # Mostrar datos
-    st.subheader("📋 Datos KPIs")
-    st.dataframe(kpis_df.head())
-    
-except Exception as e:
-    st.error(f"❌ Error: {str(e)}")
-    st.exception(e)
+# Contenido principal
+st.write("🎉 ¡Dashboard funcionando correctamente!")
+st.write("📊 Esta es una versión de prueba para verificar que Streamlit Cloud funciona.")
+
+# Métricas de prueba
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric("💰 Ventas", "$1,000,000")
+
+with col2:
+    st.metric("🛒 Pedidos", "5,000")
+
+with col3:
+    st.metric("👥 Clientes", "1,200")
 
 # Footer
 st.markdown("""
