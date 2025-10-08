@@ -530,7 +530,7 @@ def crear_sankey_segmentos(clientes_df):
         fig.add_annotation(text="Datos insuficientes para Sankey", showarrow=False)
         return fig
     
-    segmentos = clientes_df.groupby('segmento').agg({
+    segmentos = clientes_df.groupby('segmento', observed=True).agg({
         'gasto_total': 'sum',
         'id_cliente': 'count'
     }).reset_index()
@@ -896,8 +896,8 @@ def crear_analisis_estacionalidad(kpis_df):
     kpis_df['semana_año'] = kpis_df['fecha'].dt.isocalendar().week
     
     # Agrupar por diferentes periodos
-    mensual = kpis_df.groupby('mes')['ventas_totales'].mean()
-    semanal = kpis_df.groupby('dia_semana')['ventas_totales'].mean()
+    mensual = kpis_df.groupby('mes', observed=True)['ventas_totales'].mean()
+    semanal = kpis_df.groupby('dia_semana', observed=True)['ventas_totales'].mean()
     
     # Nombres de meses y días
     nombres_meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 

@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 # Agregar utils al path
 sys.path.append(str(Path(__file__).parent))
 
-# Importaciones corregidas - SIN crear_analisis_estacionalidad
+# Importaciones corregidas - TODAS LAS FUNCIONES DISPONIBLES
 from utils.visualizations import (
     crear_grafico_tendencia_ventas,
     crear_grafico_distribucion_clientes,
