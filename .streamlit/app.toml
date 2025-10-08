@@ -1,0 +1,6 @@
+# Archivo de configuración adicional para Streamlit Cloud
+# Este archivo ayuda a que Streamlit Cloud reconozca la aplicación
+
+[app]
+name = "Sano y Fresco Dashboard"
+description = "Dashboard ejecutivo de análisis de datos para productos frescos"
