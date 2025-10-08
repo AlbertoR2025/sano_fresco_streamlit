@@ -152,15 +152,18 @@ st.markdown("""
         }
     }
 
-    /* ===== TARJETAS KPI ESTILO POWER BI ===== */
+    /* ===== TARJETAS KPI CON BRILLO AVANZADO ===== */
     .metric-card {
-        background: #FFFFFF;
-        padding: 2rem 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(8, 145, 178, 0.15), 0 2px 8px rgba(6, 214, 160, 0.1);
+        background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
+        padding: 2.2rem 1.8rem;
+        border-radius: 18px;
+        box-shadow: 
+            0 8px 25px rgba(8, 145, 178, 0.15), 
+            0 4px 12px rgba(6, 214, 160, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border: none;
-        min-height: 160px;
+        border: 2px solid rgba(8, 145, 178, 0.1);
+        min-height: 180px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -172,43 +175,99 @@ st.markdown("""
         content: '';
         position: absolute;
         top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, 
-            transparent, 
-            rgba(255, 255, 255, 0.4), 
-            transparent);
-        transition: left 0.6s ease;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0891b2 0%, #06D6A0 50%, #059669 100%);
+        border-radius: 18px 18px 0 0;
     }
 
-    .metric-card:hover::before {
-        left: 100%;
+    .metric-card::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent 30%, rgba(8, 145, 178, 0.08) 50%, transparent 70%);
+        transform: rotate(45deg);
+        transition: all 0.6s ease;
+        opacity: 0;
     }
 
     .metric-card:hover {
-        transform: translateY(-8px) scale(1.03);
-        box-shadow: 0 12px 30px rgba(8, 145, 178, 0.25), 0 6px 20px rgba(6, 214, 160, 0.2);
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 
+            0 20px 40px rgba(8, 145, 178, 0.25), 
+            0 10px 25px rgba(6, 214, 160, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        border-color: rgba(8, 145, 178, 0.3);
     }
 
-    /* Ajuste de las métricas de Streamlit dentro de las tarjetas */
+    .metric-card:hover::after {
+        opacity: 1;
+        transform: rotate(45deg) translate(50%, 50%);
+    }
+
+    /* Ajuste de las métricas de Streamlit dentro de las tarjetas - FORMATO MEJORADO */
     .metric-card [data-testid="stMetricValue"] {
-        font-size: 2.2rem !important;
-        font-weight: 700 !important;
-        color: #2E86AB !important;
+        font-size: 2.8rem !important;
+        font-weight: 800 !important;
+        color: #0891b2 !important;
+        text-shadow: 0 2px 4px rgba(8, 145, 178, 0.2) !important;
+        letter-spacing: -0.5px !important;
+        line-height: 1.1 !important;
     }
 
     .metric-card [data-testid="stMetricLabel"] {
-        font-size: 0.95rem !important;
-        font-weight: 600 !important;
-        color: #6C757D !important;
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        color: #2E86AB !important;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem !important;
     }
 
     .metric-card [data-testid="stMetricDelta"] {
-        font-size: 0.85rem !important;
-        font-weight: 500 !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        margin-top: 0.5rem !important;
+    }
+
+    /* Colores específicos para cada métrica */
+    .metric-card:nth-child(1) [data-testid="stMetricValue"] {
+        color: #0891b2 !important; /* Turquesa para Ventas */
+    }
+
+    .metric-card:nth-child(2) [data-testid="stMetricValue"] {
+        color: #059669 !important; /* Verde para Pedidos */
+    }
+
+    .metric-card:nth-child(3) [data-testid="stMetricValue"] {
+        color: #06D6A0 !important; /* Verde turquesa para Ticket */
+    }
+
+    .metric-card:nth-child(4) [data-testid="stMetricValue"] {
+        color: #047857 !important; /* Verde oscuro para Productos */
+    }
+
+    /* Efecto de brillo adicional para las tarjetas */
+    .metric-card:hover {
+        background: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 100%) !important;
+    }
+
+    /* Animación de pulso sutil para los números */
+    .metric-card [data-testid="stMetricValue"] {
+        animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% { 
+            text-shadow: 0 2px 4px rgba(8, 145, 178, 0.2);
+        }
+        50% { 
+            text-shadow: 0 2px 8px rgba(8, 145, 178, 0.4), 0 0 12px rgba(8, 145, 178, 0.1);
+        }
     }
 
     /* ===== TABS MEJORADOS ===== */
@@ -530,7 +589,10 @@ col1, col2, col3, col4 = st.columns(4)
 
 # KPI 1: Ventas Totales
 with col1:
-    st.markdown("""
+    ventas_formateadas = f"${int(metricas_filtradas['ventas_totales']):,}"
+    ventas_millones = f"{metricas_filtradas['ventas_totales']/1000000:.1f}"
+    
+    st.markdown(f"""
         <div class="metric-card">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 1.5rem; margin-right: 10px;">💰</span>
@@ -539,20 +601,20 @@ with col1:
                 </span>
             </div>
             <div style="font-size: 2.2rem; font-weight: 700; color: #059669; margin: 10px 0;">
-                ${:,.0f}
+                {ventas_formateadas}
             </div>
             <div style="font-size: 0.9rem; color: #059669; font-weight: 600;">
-                ▲ ${:.1f}M
+                ▲ {ventas_millones}M
             </div>
         </div>
-    """.format(
-        metricas_filtradas['ventas_totales'],
-        metricas_filtradas['ventas_totales']/1000000
-    ), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # KPI 2: Pedidos
 with col2:
-    st.markdown("""
+    pedidos_formateados = f"{int(metricas_filtradas['pedidos_totales']):,}"
+    pedidos_dia = f"{metricas_filtradas['pedidos_totales'] / max(1, metricas_filtradas['dias_operacion']):.0f}"
+    
+    st.markdown(f"""
         <div class="metric-card">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 1.5rem; margin-right: 10px;">🛒</span>
@@ -561,20 +623,19 @@ with col2:
                 </span>
             </div>
             <div style="font-size: 2.2rem; font-weight: 700; color: #2563eb; margin: 10px 0;">
-                {:,}
+                {pedidos_formateados}
             </div>
             <div style="font-size: 0.9rem; color: #2563eb; font-weight: 600;">
-                ▲ {:.0f}/día
+                ▲ {pedidos_dia}/día
             </div>
         </div>
-    """.format(
-        metricas_filtradas['pedidos_totales'],
-        metricas_filtradas['pedidos_totales'] / max(1, metricas_filtradas['dias_operacion'])
-    ), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # KPI 3: Ticket Promedio
 with col3:
-    st.markdown("""
+    ticket_formateado = f"${metricas_filtradas['ticket_promedio']:.2f}"
+    
+    st.markdown(f"""
         <div class="metric-card">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 1.5rem; margin-right: 10px;">🎫</span>
@@ -583,17 +644,20 @@ with col3:
                 </span>
             </div>
             <div style="font-size: 2.2rem; font-weight: 700; color: #d97706; margin: 10px 0;">
-                ${:.2f}
+                {ticket_formateado}
             </div>
             <div style="font-size: 0.9rem; color: #d97706; font-weight: 600;">
                 ◆ Objetivo: $25.00
             </div>
         </div>
-    """.format(metricas_filtradas['ticket_promedio']), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # KPI 4: Clientes Únicos
 with col4:
-    st.markdown("""
+    clientes_formateados = f"{int(metricas_filtradas['clientes_unicos']):,}"
+    clientes_registrados = f"{len(clientes_filtrados):,}"
+    
+    st.markdown(f"""
         <div class="metric-card">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 1.5rem; margin-right: 10px;">👥</span>
@@ -602,16 +666,13 @@ with col4:
                 </span>
             </div>
             <div style="font-size: 2.2rem; font-weight: 700; color: #7c3aed; margin: 10px 0;">
-                {:,}
+                {clientes_formateados}
             </div>
             <div style="font-size: 0.9rem; color: #7c3aed; font-weight: 600;">
-                ▲ {:,} registrados
+                ▲ {clientes_registrados} registrados
             </div>
         </div>
-    """.format(
-        metricas_filtradas['clientes_unicos'],
-        len(clientes_filtrados)
-    ), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 st.markdown("---")
 
