@@ -21,7 +21,7 @@ from utils.visualizations import (
     crear_sankey_segmentos,
     crear_treemap_productos,
     crear_grafico_pareto,
-    crear_grafico_velocimetro_multiple
+    crear_grafico_progreso_objetivos
 )
 
 from utils.metrics import (
@@ -279,6 +279,7 @@ st.markdown("""
         border-bottom: 3px solid #06D6A0 !important;
         padding-bottom: 0.5rem !important;
         font-size: 2.2rem !important;
+        text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
     }
 
     /* Todos los elementos h2 en Streamlit */
@@ -290,6 +291,7 @@ st.markdown("""
         border-bottom: 3px solid #06D6A0 !important;
         padding-bottom: 0.5rem !important;
         font-size: 2.2rem !important;
+        text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
     }
 
     /* Sidebar mejorado */
@@ -304,28 +306,72 @@ st.markdown("""
         font-weight: 700 !important;
     }
 
-    /* Selectores adicionales para forzar el color */
-    .stSidebar h1 {
-        color: #2E86AB !important;
+    /* Selectores específicos para h3 en sidebar - MISMO FORMATO QUE TÍTULOS PRINCIPALES */
+    .stSidebar h3 {
+        color: #0891b2 !important;
         font-weight: 700 !important;
+        text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
+        font-size: 1.5rem !important;
     }
 
-    div[data-testid="stSidebar"] h1 {
-        color: #2E86AB !important;
+    div[data-testid="stSidebar"] h3 {
+        color: #0891b2 !important;
         font-weight: 700 !important;
+        text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
+        font-size: 1.5rem !important;
     }
 
-    .stSidebar .stMarkdown h1 {
-        color: #2E86AB !important;
+    .stSidebar .stMarkdown h3 {
+        color: #0891b2 !important;
         font-weight: 700 !important;
+        text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
+        font-size: 1.5rem !important;
     }
 
-    /* Forzar color en todos los h1 de sidebar */
-    .stSidebar h1, .stSidebar h1 *, 
-    div[data-testid="stSidebar"] h1, 
-    div[data-testid="stSidebar"] h1 * {
-        color: #2E86AB !important;
+    /* Forzar color en todos los h3 de sidebar */
+    .stSidebar h3, .stSidebar h3 *, 
+    div[data-testid="stSidebar"] h3, 
+    div[data-testid="stSidebar"] h3 * {
+        color: #0891b2 !important;
         font-weight: 700 !important;
+        text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
+        font-size: 1.5rem !important;
+    }
+
+    /* Selectores específicos para h4 en sidebar - TAMAÑO MÁS PEQUEÑO */
+    .stSidebar h4 {
+        color: #0891b2 !important;
+        font-weight: 600 !important;
+        text-shadow: 1px 1px 2px rgba(8, 145, 178, 0.2) !important;
+        font-size: 1.1rem !important;
+        line-height: 1.2 !important;
+    }
+
+    div[data-testid="stSidebar"] h4 {
+        color: #0891b2 !important;
+        font-weight: 600 !important;
+        text-shadow: 1px 1px 2px rgba(8, 145, 178, 0.2) !important;
+        font-size: 1.1rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .stSidebar .stMarkdown h4 {
+        color: #0891b2 !important;
+        font-weight: 600 !important;
+        text-shadow: 1px 1px 2px rgba(8, 145, 178, 0.2) !important;
+        font-size: 1.1rem !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Forzar color en todos los h4 de sidebar */
+    .stSidebar h4, .stSidebar h4 *, 
+    div[data-testid="stSidebar"] h4, 
+    div[data-testid="stSidebar"] h4 * {
+        color: #0891b2 !important;
+        font-weight: 600 !important;
+        text-shadow: 1px 1px 2px rgba(8, 145, 178, 0.2) !important;
+        font-size: 1.1rem !important;
+        line-height: 1.2 !important;
     }
 
     # Dentro de tu st.markdown con el CSS, agrega esto al final:
@@ -431,11 +477,12 @@ metricas = calcular_metricas_globales(kpis)
 clientes = segmentar_clientes_valor(clientes)
 
 # --- SIDEBAR SIMPLIFICADA ---
-st.sidebar.title("🥬 Panel de Control")
+# Título usando st.markdown con CSS específico
+st.sidebar.markdown("### Panel de Control")
 st.sidebar.markdown("---")
 
 # Solo filtros de fecha
-st.sidebar.markdown("### 📅 Período de Análisis")
+st.sidebar.markdown("#### 📅 Período de Análisis")
 
 fecha_min = kpis['fecha'].min().date()
 fecha_max = kpis['fecha'].max().date()
@@ -614,24 +661,33 @@ if not modo_rapido:
                 x=top_ventas['ventas_totales'],
                 orientation='h',
                 text=top_ventas['ventas_totales'],
-                texttemplate='%{text:,.0f}',
+                texttemplate='<b>$%{text:,.0f}</b>',
                 textposition='outside',
                 marker=dict(
-                    color=top_ventas['ventas_totales'],
-                    colorscale='Viridis',
-                    showscale=True,
-                    colorbar=dict(title='Ventas Totales')
+                    color='#0891b2',  # Color del tema
+                    line=dict(color='#047857', width=3),  # Borde grueso para efecto
+                    # Efecto Power BI con esquinas redondeadas
+                    cornerradius=8  # Esquinas redondeadas para efecto moderno
                 )
             )
         ])
         fig.update_layout(
-            title='Top 15 Productos por Ventas Totales',
-            xaxis_title='Ventas Totales',
+            xaxis_title='Ventas Totales ($)',
             yaxis_title='',
             height=500,
-            template='plotly_white',
+            font=dict(size=12, family='Arial, sans-serif'),
+            margin=dict(l=60, r=60, t=40, b=60),
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
             showlegend=False,
-            yaxis={'categoryorder':'total ascending'}
+            yaxis={'categoryorder':'total ascending'},
+            xaxis=dict(
+                gridcolor='rgba(0,0,0,0.1)',
+                showgrid=True
+            ),
+            # Efecto Power BI con sombra
+            barmode='group',
+            bargap=0.3
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -644,24 +700,30 @@ if not modo_rapido:
                 x=top_pedidos['pedidos_unicos'],
                 orientation='h',
                 text=top_pedidos['pedidos_unicos'],
-                texttemplate='%{text:,.0f}',
+                texttemplate='<b>%{text:,.0f}</b>',
                 textposition='outside',
                 marker=dict(
-                    color=top_pedidos['pedidos_unicos'],
-                    colorscale='Viridis',
-                    showscale=True,
-                    colorbar=dict(title='Pedidos Unicos')
+                    color='#06D6A0',  # Verde turquesa del tema
+                    line=dict(color='#047857', width=3),  # Borde grueso para efecto
+                    # Efecto Power BI con esquinas redondeadas
+                    cornerradius=8  # Esquinas redondeadas para efecto moderno
                 )
             )
         ])
         fig.update_layout(
-            title='Top 15 Productos por Pedidos Unicos',
-            xaxis_title='Pedidos Unicos',
+            xaxis_title='Pedidos Únicos',
             yaxis_title='',
             height=500,
-            template='plotly_white',
+            font=dict(size=12, family='Arial, sans-serif'),
+            margin=dict(l=60, r=60, t=40, b=60),
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
             showlegend=False,
-            yaxis={'categoryorder':'total ascending'}
+            yaxis={'categoryorder':'total ascending'},
+            xaxis=dict(
+                gridcolor='rgba(0,0,0,0.1)',
+                showgrid=True
+            )
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -674,24 +736,30 @@ if not modo_rapido:
                 x=top_precio['precio_promedio'],
                 orientation='h',
                 text=top_precio['precio_promedio'],
-                texttemplate='%{text:.2f}',
+                texttemplate='<b>$%{text:.2f}</b>',
                 textposition='outside',
                 marker=dict(
-                    color=top_precio['precio_promedio'],
-                    colorscale='Viridis',
-                    showscale=True,
-                    colorbar=dict(title='Precio Promedio')
+                    color='#059669',  # Verde del tema
+                    line=dict(color='#047857', width=3),  # Borde grueso para efecto
+                    # Efecto Power BI con esquinas redondeadas
+                    cornerradius=8  # Esquinas redondeadas para efecto moderno
                 )
             )
         ])
         fig.update_layout(
-            title='Top 15 Productos por Precio Promedio',
-            xaxis_title='Precio Promedio',
+            xaxis_title='Precio Promedio ($)',
             yaxis_title='',
             height=500,
-            template='plotly_white',
+            font=dict(size=12, family='Arial, sans-serif'),
+            margin=dict(l=60, r=60, t=40, b=60),
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
             showlegend=False,
-            yaxis={'categoryorder':'total ascending'}
+            yaxis={'categoryorder':'total ascending'},
+            xaxis=dict(
+                gridcolor='rgba(0,0,0,0.1)',
+                showgrid=True
+            )
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -774,7 +842,7 @@ objetivos = {
 }
 
 st.plotly_chart(
-    crear_grafico_velocimetro_multiple(metricas_filtradas, objetivos),
+    crear_grafico_progreso_objetivos(metricas_filtradas, objetivos),
     use_container_width=True
 )
 
@@ -783,36 +851,84 @@ st.markdown("---")
 st.markdown("""
 <div style='text-align: center; padding: 2rem; background-color: #f8f9fa; border-radius: 10px;'>
     <h3 style='color: #2E86AB;'>🥑 Sano y Fresco Dashboard</h3>
-    <p style='color: #6c757d;'>📊 Análisis de Datos 2025 | 🔄 Actualizado en Tiempo Real | 🚀 v3.0 Mejorado</p>
-    <p style='color: #6c757d; font-size: 0.8rem;'>Modo Rápido: {modo_rapido} | Gráficos Avanzados: {avanzados}</p>
+    <p style='color: #6c757d;'>📊 Análisis de Datos 2025 | 🔄 Actualizado en Tiempo Real</p>
+    <p style='color: #6c757d; font-size: 0.9rem;'>🐍 Desarrollado con Python | ⚡ Powered by Streamlit | 📈 Visualización Interactiva</p>
 </div>
-""".format(
-    modo_rapido="✅ Activado" if modo_rapido else "❌ Desactivado",
-    avanzados="✅ Activados" if mostrar_graficos_pesados else "❌ Desactivados"
-), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# JavaScript para forzar el color del título de sidebar
+# JavaScript AGRESIVO para forzar el color del título de sidebar
 st.markdown("""
 <script>
-// Esperar a que se cargue la página
-setTimeout(function() {
-    // Buscar todos los h1 en la sidebar
-    const sidebarH1s = document.querySelectorAll('.stSidebar h1, div[data-testid="stSidebar"] h1, .css-1d391kg h1');
+// Función para aplicar estilos AGRESIVAMENTE a h3 y h4
+function forceSidebarTitleColor() {
+    // Buscar TODOS los elementos h3 posibles
+    const h3Selectors = [
+        '.stSidebar h3',
+        'div[data-testid="stSidebar"] h3',
+        '.stSidebar .stMarkdown h3',
+        'h3[data-testid="stSidebar"]',
+        '.stSidebar h3 *',
+        'div[data-testid="stSidebar"] h3 *'
+    ];
     
-    // Aplicar color azul fuerte a todos los h1 encontrados
-    sidebarH1s.forEach(function(h1) {
-        h1.style.color = '#2E86AB !important';
-        h1.style.fontWeight = '700 !important';
+    h3Selectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+            element.style.setProperty('color', '#0891b2', 'important');
+            element.style.setProperty('font-weight', '700', 'important');
+            element.style.setProperty('text-shadow', '2px 2px 4px rgba(8, 145, 178, 0.3)', 'important');
+            element.style.setProperty('font-size', '1.5rem', 'important');
+        });
     });
     
-    // También buscar por texto específico
+    // Buscar TODOS los elementos h4 posibles (más pequeños)
+    const h4Selectors = [
+        '.stSidebar h4',
+        'div[data-testid="stSidebar"] h4',
+        '.stSidebar .stMarkdown h4',
+        'h4[data-testid="stSidebar"]',
+        '.stSidebar h4 *',
+        'div[data-testid="stSidebar"] h4 *'
+    ];
+    
+    h4Selectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+            element.style.setProperty('color', '#0891b2', 'important');
+            element.style.setProperty('font-weight', '600', 'important');
+            element.style.setProperty('text-shadow', '1px 1px 2px rgba(8, 145, 178, 0.2)', 'important');
+            element.style.setProperty('font-size', '1.1rem', 'important');
+            element.style.setProperty('line-height', '1.2', 'important');
+        });
+    });
+    
+    // Buscar por texto específico y aplicar a TODOS los elementos
     const allElements = document.querySelectorAll('*');
-    allElements.forEach(function(element) {
+    allElements.forEach(element => {
         if (element.textContent && element.textContent.includes('Panel de Control')) {
-            element.style.color = '#2E86AB !important';
-            element.style.fontWeight = '700 !important';
+            element.style.setProperty('color', '#0891b2', 'important');
+            element.style.setProperty('font-weight', '700', 'important');
+            element.style.setProperty('text-shadow', '2px 2px 4px rgba(8, 145, 178, 0.3)', 'important');
+            element.style.setProperty('font-size', '1.5rem', 'important');
+        }
+        if (element.textContent && element.textContent.includes('Período de Análisis')) {
+            element.style.setProperty('color', '#0891b2', 'important');
+            element.style.setProperty('font-weight', '600', 'important');
+            element.style.setProperty('text-shadow', '1px 1px 2px rgba(8, 145, 178, 0.2)', 'important');
+            element.style.setProperty('font-size', '1.1rem', 'important');
+            element.style.setProperty('line-height', '1.2', 'important');
         }
     });
-}, 1000);
+}
+
+// Ejecutar múltiples veces para asegurar que se aplique
+setTimeout(forceSidebarTitleColor, 500);
+setTimeout(forceSidebarTitleColor, 1000);
+setTimeout(forceSidebarTitleColor, 2000);
+setTimeout(forceSidebarTitleColor, 3000);
+
+// También ejecutar cuando cambie el DOM
+const observer = new MutationObserver(forceSidebarTitleColor);
+observer.observe(document.body, { childList: true, subtree: true });
 </script>
 """, unsafe_allow_html=True)

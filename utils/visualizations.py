@@ -4,43 +4,122 @@ from plotly.subplots import make_subplots
 import plotly.figure_factory as ff
 import pandas as pd
 import numpy as np
+from scipy import stats
 
 def crear_grafico_tendencia_ventas(kpis_df):
-    """Gráfico de línea con tendencia de ventas diarias"""
-    fig = go.Figure()
+    """Gráfico de Tendencias SIMPLIFICADO - Claro y Legible"""
+    from plotly.subplots import make_subplots
+    import numpy as np
+    from scipy import stats
+    
+    fig = make_subplots(
+        rows=1, cols=1,
+        subplot_titles=['📈 Evolución de Ventas con Tendencia'],
+        specs=[[{"secondary_y": False}]]
+    )
     
     if 'fecha' not in kpis_df.columns or 'ventas_totales' not in kpis_df.columns:
         fig.add_annotation(text="Datos insuficientes para gráfico", showarrow=False)
         return fig
 
-    # Línea principal
-    fig.add_trace(go.Scatter(
-        x=kpis_df['fecha'],
-        y=kpis_df['ventas_totales'],
-        mode='lines',
-        name='Ventas Diarias',
-        line=dict(color='#2E86AB', width=2),
-        fill='tozeroy',
-        fillcolor='rgba(46, 134, 171, 0.1)'
-    ))
+    # Preparar datos
+    df_clean = kpis_df.dropna(subset=['fecha', 'ventas_totales'])
+    df_clean = df_clean.sort_values('fecha')
     
-    # Media móvil 7 días
-    kpis_df['ma7'] = kpis_df['ventas_totales'].rolling(window=7).mean()
-    fig.add_trace(go.Scatter(
-        x=kpis_df['fecha'],
-        y=kpis_df['ma7'],
-        mode='lines',
-        name='Media Móvil 7 días',
-        line=dict(color='#A23B72', width=2, dash='dash')
-    ))
+    # Convertir fechas a números para regresión
+    df_clean['fecha_num'] = (df_clean['fecha'] - df_clean['fecha'].min()).dt.days
+    
+    # === SOLO VENTAS PRINCIPALES ===
+    
+    # Ventas con área (más suave)
+    fig.add_trace(
+        go.Scatter(
+            x=df_clean['fecha'],
+            y=df_clean['ventas_totales'],
+            mode='lines',
+            name='💰 Ventas Diarias',
+            line=dict(color='#059669', width=3),
+            fill='tozeroy',
+            fillcolor='rgba(5, 150, 105, 0.15)',
+            hovertemplate='<b>%{x|%Y-%m-%d}</b><br>Ventas: <b>$%{y:,.0f}</b><extra></extra>'
+        ),
+        row=1, col=1
+    )
+    
+    # Media móvil 7 días (más suave)
+    df_clean['ma7_ventas'] = df_clean['ventas_totales'].rolling(window=7, min_periods=1).mean()
+    fig.add_trace(
+        go.Scatter(
+            x=df_clean['fecha'],
+            y=df_clean['ma7_ventas'],
+            mode='lines',
+            name='📈 Tendencia (7 días)',
+            line=dict(color='#dc2626', width=3, dash='solid'),
+            hovertemplate='<b>%{x|%Y-%m-%d}</b><br>Tendencia: <b>$%{y:,.0f}</b><extra></extra>'
+        ),
+        row=1, col=1
+    )
+    
+    # === ANÁLISIS ESTADÍSTICO SIMPLE ===
+    
+    # Calcular estadísticas básicas
+    if len(df_clean) > 1:
+        slope_ventas, intercept_ventas, r_value_ventas, p_value_ventas, std_err_ventas = stats.linregress(
+            df_clean['fecha_num'], df_clean['ventas_totales']
+        )
+        
+        # Calcular crecimiento porcentual
+        crecimiento_diario = slope_ventas / df_clean['ventas_totales'].mean() * 100
+        crecimiento_anual = crecimiento_diario * 365
+        
+        # Agregar estadísticas en una caja limpia
+        fig.add_annotation(
+            x=0.98, y=0.98,
+            xref='paper', yref='paper',
+            text=f'<b>📊 Estadísticas</b><br>' +
+                 f'Crecimiento Diario: <b>{crecimiento_diario:+.2f}%</b><br>' +
+                 f'Crecimiento Anual: <b>{crecimiento_anual:+.1f}%</b><br>' +
+                 f'Tendencia: <b>{"📈" if crecimiento_diario > 0 else "📉"}</b>',
+            showarrow=False,
+            font=dict(size=14, color='#0891b2'),
+            bgcolor='rgba(255,255,255,0.9)',
+            bordercolor='#0891b2',
+            borderwidth=2,
+            align='right'
+        )
+    
+    # === CONFIGURACIÓN SIMPLE Y LIMPIA ===
     
     fig.update_layout(
-        title='Evolución de Ventas Diarias 2023',
-        xaxis_title='Fecha',
-        yaxis_title='Ventas ($)',
+        height=500,
+        font=dict(size=12, family='Arial, sans-serif'),
+        margin=dict(l=60, r=60, t=80, b=60),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
         hovermode='x unified',
-        template='plotly_white',
-        height=400
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.15,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=14)
+        )
+    )
+    
+    # Configurar ejes más limpios
+    fig.update_xaxes(
+        title_text="Fecha",
+        tickfont=dict(size=12),
+        gridcolor='rgba(0,0,0,0.1)',
+        showgrid=True
+    )
+    fig.update_yaxes(
+        title_text="Ventas ($)",
+        tickfont=dict(size=12),
+        gridcolor='rgba(0,0,0,0.1)',
+        showgrid=True
     )
     
     return fig
@@ -158,7 +237,7 @@ def crear_grafico_top_productos(productos_df, metrica='ventas_totales', top_n=15
     return fig
 
 def crear_heatmap_ventas_mensual(kpis_df):
-    """Heatmap de ventas por mes y día de la semana"""
+    """Heatmap MEJORADO - Colores del tema y mejor legibilidad"""
     if 'fecha' not in kpis_df.columns or 'ventas_totales' not in kpis_df.columns:
         fig = go.Figure()
         fig.add_annotation(text="Datos insuficientes para heatmap", showarrow=False)
@@ -181,22 +260,77 @@ def crear_heatmap_ventas_mensual(kpis_df):
     pivot = pivot.reindex(dias_orden)
     pivot.index = dias_espanol
     
+    # Crear heatmap con colores del tema y mejor contraste
     fig = go.Figure(data=go.Heatmap(
         z=pivot.values,
         x=pivot.columns,
         y=pivot.index,
-        colorscale='Blues',
+        colorscale=[
+            [0.0, '#0891b2'],      # Turquesa (color base más oscuro)
+            [0.3, '#06D6A0'],      # Verde turquesa
+            [0.6, '#059669'],      # Verde
+            [0.8, '#047857'],      # Verde oscuro
+            [1.0, '#065f46']       # Verde muy oscuro
+        ],
         text=pivot.values,
-        texttemplate='$%{text:,.0f}',
-        textfont={"size": 10}
+        texttemplate='<b>$%{text:,.0f}</b>',
+        textfont={"size": 14, "color": "white"},
+        hoverongaps=False,
+        hovertemplate='<b>%{y}</b> - <b>Mes %{x}</b><br>' +
+                     'Ventas Promedio: <b>$%{z:,.0f}</b><br>' +
+                     '<extra></extra>'
     ))
     
+    # Agregar sombra al texto para mejor legibilidad
+    fig.update_traces(
+        textfont=dict(
+            size=14,
+            color="white",
+            family="Arial Black"  # Fuente más gruesa para mejor contraste
+        )
+    )
+    
+    # Actualizar layout sin título redundante
     fig.update_layout(
-        title='Promedio de Ventas por Día de la Semana y Mes',
-        xaxis_title='Mes',
-        yaxis_title='Día de la Semana',
-        height=400,
-        template='plotly_white'
+        height=500,
+        font=dict(size=12, family='Arial, sans-serif'),
+        margin=dict(l=60, r=60, t=40, b=60),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(
+            title=dict(
+                text="Mes",
+                font=dict(size=14, color='#0891b2')
+            ),
+            tickfont=dict(size=12),
+            gridcolor='rgba(0,0,0,0.1)',
+            showgrid=True
+        ),
+        yaxis=dict(
+            title=dict(
+                text="Día de la Semana",
+                font=dict(size=14, color='#0891b2')
+            ),
+            tickfont=dict(size=12),
+            gridcolor='rgba(0,0,0,0.1)',
+            showgrid=True
+        )
+    )
+    
+    # Mejorar la barra de colores
+    fig.update_layout(
+        coloraxis=dict(
+            colorbar=dict(
+                title=dict(
+                    text='Ventas ($)',
+                    font=dict(size=14, color='#0891b2')
+                ),
+                tickfont=dict(size=12),
+                len=0.8,
+                y=0.5,
+                yanchor='middle'
+            )
+        )
     )
     
     return fig
@@ -237,9 +371,9 @@ def crear_gauge_chart(valor, valor_objetivo, titulo):
 # ========== NUEVAS VISUALIZACIONES IMPACTANTES ==========
 
 def crear_mapa_correlaciones(kpis_df):
-    """Mapa de calor de correlaciones entre métricas"""
+    """Mapa de calor de correlaciones MEJORADO - Elegante y Profesional"""
     cols_numericas = [
-        'ventas_totales', 'pedidos_unicos', 'ticket_promedio',
+        'ventas_totales', 'pedidos_totales', 'ticket_promedio',
         'productos_por_pedido', 'clientes_unicos'
     ]
     
@@ -248,32 +382,91 @@ def crear_mapa_correlaciones(kpis_df):
     
     if len(cols_disponibles) < 2:
         fig = go.Figure()
-        fig.add_annotation(text="No hay suficientes métricas para correlación", showarrow=False)
+        fig.add_annotation(
+            text="No hay suficientes métricas para correlación", 
+            showarrow=False,
+            font=dict(size=16, color='#6c757d')
+        )
         return fig
     
+    # Calcular matriz de correlación
     corr_matrix = kpis_df[cols_disponibles].corr()
     
-    fig = ff.create_annotated_heatmap(
-        z=corr_matrix.values,
-        x=list(corr_matrix.columns),
-        y=list(corr_matrix.index),
-        annotation_text=corr_matrix.round(2).values,
-        colorscale='RdBu',
-        showscale=True,
-        zmid=0
+    # Crear nombres más legibles
+    nombres_legibles = {
+        'ventas_totales': '💰 Ventas',
+        'pedidos_totales': '🛒 Pedidos', 
+        'ticket_promedio': '🎫 Ticket Promedio',
+        'productos_por_pedido': '📦 Productos/Pedido',
+        'clientes_unicos': '👥 Clientes'
+    }
+    
+    # Renombrar columnas para mostrar
+    corr_display = corr_matrix.copy()
+    corr_display.columns = [nombres_legibles.get(col, col) for col in corr_display.columns]
+    corr_display.index = [nombres_legibles.get(col, col) for col in corr_display.index]
+    
+    # Crear heatmap con go.Heatmap para mejor control
+    fig = go.Figure(data=go.Heatmap(
+        z=corr_display.values,
+        x=corr_display.columns,
+        y=corr_display.index,
+        colorscale=[
+            [0.0, '#dc2626'],    # Rojo para correlación negativa fuerte
+            [0.25, '#f87171'],   # Rojo claro
+            [0.5, '#f8f9fa'],    # Blanco para correlación cero
+            [0.75, '#60a5fa'],   # Azul claro
+            [1.0, '#2563eb']     # Azul para correlación positiva fuerte
+        ],
+        zmin=-1,
+        zmax=1,
+        text=corr_display.round(2).values,
+        texttemplate='%{text}',
+        textfont={'size': 14, 'color': 'white'},
+        hoverongaps=False,
+        hovertemplate='<b>%{y}</b> vs <b>%{x}</b><br>' +
+                     'Correlación: <b>%{z:.3f}</b><br>' +
+                     '<extra></extra>'
+    ))
+    
+    # Actualizar layout con estilo profesional
+    fig.update_layout(
+        height=600,
+        font=dict(size=12, family='Arial, sans-serif'),
+        margin=dict(l=100, r=50, t=100, b=100),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(
+            side='bottom',
+            tickfont=dict(size=12),
+            tickangle=45
+        ),
+        yaxis=dict(
+            side='left',
+            tickfont=dict(size=12)
+        )
     )
     
+    # Agregar barra de colores personalizada
     fig.update_layout(
-        title='🔗 Correlación entre Métricas de Negocio',
-        height=500,
-        template='plotly_white',
-        xaxis={'side': 'bottom'}
+        coloraxis=dict(
+            colorbar=dict(
+                title=dict(
+                    text='Correlación',
+                    font=dict(size=14, color='#0891b2')
+                ),
+                tickfont=dict(size=12),
+                len=0.8,
+                y=0.5,
+                yanchor='middle'
+            )
+        )
     )
     
     return fig
 
 def crear_waterfall_contribucion(productos_df, top_n=10):
-    """Gráfico de cascada mostrando contribución de productos"""
+    """Gráfico de cascada MEJORADO - Colores del tema y sin título redundante"""
     if 'ventas_totales' not in productos_df.columns:
         fig = go.Figure()
         fig.add_annotation(text="Datos insuficientes", showarrow=False)
@@ -291,20 +484,37 @@ def crear_waterfall_contribucion(productos_df, top_n=10):
         measure=["relative"] * len(productos_list),
         x=productos_list,
         y=valores,
-        text=[f"${v:,.0f}" for v in valores],
+        text=[f"<b>${v:,.0f}</b>" for v in valores],
         textposition="outside",
-        connector={"line": {"color": "rgb(63, 63, 63)"}},
-        decreasing={"marker": {"color": "#EF476F"}},
-        increasing={"marker": {"color": "#06D6A0"}},
-        totals={"marker": {"color": "#2E86AB"}}
+        textfont=dict(size=12, color='#0891b2'),
+        connector={"line": {"color": "#0891b2", "width": 2}},
+        decreasing={"marker": {"color": "#dc2626"}},  # Rojo del tema
+        increasing={"marker": {"color": "#06D6A0"}},   # Verde turquesa del tema
+        totals={"marker": {"color": "#0891b2"}}        # Turquesa del tema
     ))
     
     fig.update_layout(
-        title=f"💰 Contribución de Top {top_n} Productos a Ventas Totales",
         showlegend=False,
         height=500,
-        template='plotly_white',
-        xaxis_tickangle=-45
+        font=dict(size=12, family='Arial, sans-serif'),
+        margin=dict(l=60, r=60, t=40, b=60),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(
+            tickangle=-45,
+            tickfont=dict(size=12),
+            gridcolor='rgba(0,0,0,0.1)',
+            showgrid=True
+        ),
+        yaxis=dict(
+            title=dict(
+                text='Ventas ($)',
+                font=dict(size=14, color='#0891b2')
+            ),
+            tickfont=dict(size=12),
+            gridcolor='rgba(0,0,0,0.1)',
+            showgrid=True
+        )
     )
     
     return fig
@@ -329,7 +539,7 @@ def crear_sankey_segmentos(clientes_df):
     value = list(segmentos['gasto_total'])
     labels = list(segmentos['segmento']) + ['Total Ingresos']
     
-    colors = ['#06D6A0', '#118AB2', '#FFD166', '#EF476F', '#6C757D', '#2E86AB']
+    colors = ['#059669', '#2563eb', '#7c3aed', '#d97706', '#dc2626', '#0891b2']
     
     fig = go.Figure(data=[go.Sankey(
         node=dict(
@@ -348,15 +558,17 @@ def crear_sankey_segmentos(clientes_df):
     )])
     
     fig.update_layout(
-        title="🌊 Flujo de Ingresos por Segmento de Clientes",
-        font=dict(size=12),
-        height=400
+        height=500,
+        font=dict(size=14, family='Arial, sans-serif'),
+        margin=dict(l=20, r=20, t=20, b=20),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
     )
     
     return fig
 
 def crear_treemap_productos(productos_df):
-    """Treemap jerárquico de productos por ventas"""
+    """Treemap jerárquico MEJORADO - Colores del tema y sin título redundante"""
     if 'ventas_totales' not in productos_df.columns:
         fig = go.Figure()
         fig.add_annotation(text="Datos insuficientes", showarrow=False)
@@ -366,22 +578,68 @@ def crear_treemap_productos(productos_df):
     productos_df = productos_df.copy()
     productos_df['categoria'] = 'Productos'
     
+    # Crear treemap con colores del tema
     fig = px.treemap(
         productos_df,
         path=['categoria', 'nombre_producto'],
         values='ventas_totales',
         color='ventas_totales',
-        color_continuous_scale='Viridis',
-        title='🗺️ Mapa de Calor: Ventas por Producto'
+        color_continuous_scale=[
+            [0.0, '#dc2626'],      # Rojo para valores bajos
+            [0.2, '#d97706'],      # Naranja
+            [0.4, '#059669'],       # Verde
+            [0.6, '#0891b2'],       # Turquesa
+            [0.8, '#2563eb'],       # Azul
+            [1.0, '#7c3aed']        # Morado para valores altos
+        ],
+        hover_data={'ventas_totales': ':$,.0f'},
+        hover_name='nombre_producto'
     )
     
-    fig.update_traces(textposition="middle center", textfont_size=12)
-    fig.update_layout(height=600)
+    # Mejorar el texto y la interactividad
+    fig.update_traces(
+        textposition="middle center", 
+        textfont_size=12,
+        textfont_color='white',
+        hovertemplate='<b>%{label}</b><br>' +
+                     'Ventas: <b>$%{value:,.0f}</b><br>' +
+                     'Porcentaje: <b>%{percentParent:.1%}</b><extra></extra>'
+    )
+    
+    # Actualizar layout con título claro
+    fig.update_layout(
+        title=dict(
+            text='🗺️ Mapa de Ventas por Producto',
+            font=dict(size=18, color='#0891b2'),
+            x=0.5
+        ),
+        height=500,
+        font=dict(size=12, family='Arial, sans-serif'),
+        margin=dict(l=20, r=20, t=60, b=20),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
+    )
+    
+    # Mejorar la barra de colores
+    fig.update_layout(
+        coloraxis=dict(
+            colorbar=dict(
+                title=dict(
+                    text='Ventas ($)',
+                    font=dict(size=14, color='#0891b2')
+                ),
+                tickfont=dict(size=12),
+                len=0.8,
+                y=0.5,
+                yanchor='middle'
+            )
+        )
+    )
     
     return fig
 
 def crear_grafico_pareto(productos_df):
-    """Gráfico de Pareto (80/20) para productos"""
+    """Gráfico de Pareto MEJORADO - Colores del tema y sin título redundante"""
     if 'ventas_totales' not in productos_df.columns:
         fig = go.Figure()
         fig.add_annotation(text="Datos insuficientes", showarrow=False)
@@ -395,132 +653,228 @@ def crear_grafico_pareto(productos_df):
     # Crear figura con doble eje
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     
-    # Barras de ventas
+    # Barras de ventas con colores del tema
     fig.add_trace(
         go.Bar(
             x=df_sorted['nombre_producto'],
             y=df_sorted['ventas_totales'],
             name="Ventas",
-            marker_color='#2E86AB'
+            marker_color='#0891b2',  # Turquesa del tema
+            marker_line=dict(color='#047857', width=1),
+            text=df_sorted['ventas_totales'],
+            texttemplate='<b>$%{text:,.0f}</b>',
+            textposition='outside',
+            textfont=dict(size=10, color='#0891b2')
         ),
         secondary_y=False
     )
     
-    # Línea acumulada
+    # Línea acumulada con colores del tema
     fig.add_trace(
         go.Scatter(
             x=df_sorted['nombre_producto'],
             y=df_sorted['porcentaje_acumulado'],
             name="% Acumulado",
-            line=dict(color='#EF476F', width=3),
-            mode='lines+markers'
+            line=dict(color='#dc2626', width=3),  # Rojo del tema
+            mode='lines+markers',
+            marker=dict(size=8, color='#dc2626')
         ),
         secondary_y=True
     )
     
-    # Línea del 80%
+    # Línea del 80% con color del tema
     fig.add_hline(
         y=80,
         line_dash="dash",
-        line_color="green",
+        line_color="#059669",  # Verde del tema
+        line_width=2,
         annotation_text="Regla 80/20",
+        annotation_font=dict(size=12, color='#059669'),
         secondary_y=True
     )
     
     fig.update_layout(
-        title="📊 Análisis de Pareto: ¿Qué productos generan el 80% de ventas?",
         hovermode='x unified',
         height=500,
-        template='plotly_white',
-        xaxis_tickangle=-45
+        font=dict(size=12, family='Arial, sans-serif'),
+        margin=dict(l=60, r=60, t=40, b=60),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(
+            tickangle=-45,
+            tickfont=dict(size=12),
+            gridcolor='rgba(0,0,0,0.1)',
+            showgrid=True
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.15,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=12)
+        )
     )
     
-    fig.update_yaxes(title_text="Ventas ($)", secondary_y=False)
-    fig.update_yaxes(title_text="% Acumulado", secondary_y=True, range=[0, 105])
+    fig.update_yaxes(
+        title=dict(
+            text="Ventas ($)",
+            font=dict(size=14, color='#0891b2')
+        ), 
+        secondary_y=False,
+        tickfont=dict(size=12),
+        gridcolor='rgba(0,0,0,0.1)',
+        showgrid=True
+    )
+    fig.update_yaxes(
+        title=dict(
+            text="% Acumulado",
+            font=dict(size=14, color='#dc2626')
+        ), 
+        secondary_y=True, 
+        range=[0, 105],
+        tickfont=dict(size=12),
+        gridcolor='rgba(0,0,0,0.1)',
+        showgrid=True
+    )
     
     return fig
 
-def crear_grafico_velocimetro_multiple(metricas, objetivos):
-    """Panel de velocímetros compacto CORREGIDO"""
+def crear_grafico_progreso_objetivos(metricas, objetivos):
+    """Gráfico de Gauges Circulares - ELEGANTE Y NÍTIDO"""
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    
+    # Calcular porcentajes
+    porcentajes = {
+        'Ventas': (metricas['ventas_totales'] / objetivos['ventas']) * 100,
+        'Pedidos': (metricas['pedidos_totales'] / objetivos['pedidos']) * 100,
+        'Clientes': (metricas['clientes_unicos'] / objetivos['clientes']) * 100
+    }
+    
+    # Valores actuales
+    valores_actuales = {
+        'Ventas': metricas['ventas_totales'],
+        'Pedidos': metricas['pedidos_totales'],
+        'Clientes': metricas['clientes_unicos']
+    }
+    
+    # Objetivos
+    valores_objetivos = {
+        'Ventas': objetivos['ventas'],
+        'Pedidos': objetivos['pedidos'],
+        'Clientes': objetivos['clientes']
+    }
+    
+    # Crear subplots con gauges
     fig = make_subplots(
         rows=1, cols=3,
         specs=[[{'type': 'indicator'}, {'type': 'indicator'}, {'type': 'indicator'}]],
-        subplot_titles=('💰 Ventas', '🛒 Pedidos', '👥 Clientes')
+        subplot_titles=['💰 Ventas Totales', '🛒 Pedidos Totales', '👥 Clientes Únicos']
     )
     
+    # Configuración de cada gauge
     configs = [
-        ('ventas_totales', objetivos.get('ventas', 5000000), '$', 1, 1),
-        ('pedidos_totales', objetivos.get('pedidos', 2500000), '', 1, 2),
-        ('clientes_unicos', objetivos.get('clientes', 150000), '', 1, 3)
+        {
+            'metrica': 'Ventas',
+            'valor': valores_actuales['Ventas'],
+            'objetivo': valores_objetivos['Ventas'],
+            'porcentaje': porcentajes['Ventas'],
+            'color': '#059669',
+            'suffix': '$',
+            'row': 1,
+            'col': 1
+        },
+        {
+            'metrica': 'Pedidos',
+            'valor': valores_actuales['Pedidos'],
+            'objetivo': valores_objetivos['Pedidos'],
+            'porcentaje': porcentajes['Pedidos'],
+            'color': '#2563eb',
+            'suffix': '',
+            'row': 1,
+            'col': 2
+        },
+        {
+            'metrica': 'Clientes',
+            'valor': valores_actuales['Clientes'],
+            'objetivo': valores_objetivos['Clientes'],
+            'porcentaje': porcentajes['Clientes'],
+            'color': '#7c3aed',
+            'suffix': '',
+            'row': 1,
+            'col': 3
+        }
     ]
     
-    colores = ['#2E86AB', '#06D6A0', '#118AB2']
-    
-    for i, (metrica, objetivo, prefijo, row, col) in enumerate(configs):
-        valor = metricas.get(metrica, 0)
-        porcentaje = (valor / objetivo * 100) if objetivo > 0 else 0
-        
-        # Formatear valores para mostrar de manera legible
-        if valor >= 1000000:
-            valor_formateado = f"{valor/1000000:.1f}M"
-        elif valor >= 1000:
-            valor_formateado = f"{valor/1000:.0f}K"
+    # Crear cada gauge
+    for config in configs:
+        # Formatear valor para mostrar
+        if config['valor'] >= 1000000:
+            valor_formateado = f"{config['valor']/1000000:.1f}M"
+        elif config['valor'] >= 1000:
+            valor_formateado = f"{config['valor']/1000:.0f}K"
         else:
-            valor_formateado = f"{valor:.0f}"
+            valor_formateado = f"{config['valor']:.0f}"
         
         fig.add_trace(
             go.Indicator(
                 mode="gauge+number+delta",
-                value=valor,
-                number={
-                    'prefix': prefijo,
-                    'valueformat': ',.0f',
-                    'font': {'size': 20}
+                value=config['valor'],
+                domain={'x': [0, 1], 'y': [0, 1]},
+                title={
+                    'text': f"<b>{config['metrica']}</b><br><span style='font-size:16px'>{config['porcentaje']:.1f}% del Objetivo</span>",
+                    'font': {'size': 18, 'color': config['color']}
                 },
                 delta={
-                    'reference': objetivo,
+                    'reference': config['objetivo'],
                     'relative': False,
                     'valueformat': ',.0f',
                     'increasing': {'color': "#06D6A0"},
                     'decreasing': {'color': "#EF476F"},
-                    'font': {'size': 14}
+                    'font': {'size': 16}
                 },
-                title={
-                    'text': f"{porcentaje:.1f}%<br>Objetivo",
-                    'font': {'size': 12}
+                number={
+                    'prefix': config['suffix'],
+                    'valueformat': ',.0f',
+                    'font': {'size': 24, 'color': config['color']}
                 },
                 gauge={
                     'axis': {
-                        'range': [None, objetivo * 1.2],
+                        'range': [None, config['objetivo'] * 1.2],
                         'tickformat': ',.0f',
-                        'tickfont': {'size': 10}
+                        'tickfont': {'size': 12},
+                        'tickcolor': config['color']
                     },
-                    'bar': {'color': colores[i], 'thickness': 0.8},
+                    'bar': {
+                        'color': config['color'],
+                        'thickness': 0.8
+                    },
                     'bgcolor': "white",
-                    'borderwidth': 2,
-                    'bordercolor': "gray",
+                    'borderwidth': 3,
+                    'bordercolor': config['color'],
                     'steps': [
-                        {'range': [0, objetivo * 0.6], 'color': '#EF476F'},
-                        {'range': [objetivo * 0.6, objetivo * 0.8], 'color': '#FFD166'},
-                        {'range': [objetivo * 0.8, objetivo], 'color': '#06D6A0'}
+                        {'range': [0, config['objetivo'] * 0.5], 'color': '#f8f9fa'},
+                        {'range': [config['objetivo'] * 0.5, config['objetivo'] * 0.8], 'color': '#e9ecef'},
+                        {'range': [config['objetivo'] * 0.8, config['objetivo']], 'color': '#dee2e6'}
                     ],
                     'threshold': {
-                        'line': {'color': "red", 'width': 4},
+                        'line': {'color': "#dc2626", 'width': 4},
                         'thickness': 0.8,
-                        'value': objetivo
+                        'value': config['objetivo']
                     }
                 }
             ),
-            row=row, col=col
+            row=config['row'], col=config['col']
         )
     
+    # Actualizar layout
     fig.update_layout(
-        height=300,
-        template='plotly_white',
+        height=500,
         font={'family': "Arial, sans-serif"},
-        margin=dict(l=50, r=50, t=80, b=50),
-        title_text="🎯 Progreso vs Objetivos Anuales",
-        title_x=0.5
+        margin=dict(l=50, r=50, t=100, b=50),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
     )
     
     return fig
