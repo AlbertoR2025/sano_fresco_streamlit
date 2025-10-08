@@ -148,18 +148,19 @@ def crear_grafico_distribucion_clientes(clientes_df):
     
     colores_ordenados = [colores_mapa.get(seg, '#118AB2') for seg in segmentos.index]
     
-    # Crear gráfico de DONUT (pie con hole)
+    # Crear gráfico DONUT PREMIUM con efecto Salesforce
     fig = go.Figure(data=[go.Pie(
         labels=segmentos.index,
         values=segmentos.values,
-        hole=0.5,  # Esto crea el efecto donut
+        hole=0.45,  # Efecto donut más pronunciado
         marker=dict(
             colors=colores_ordenados,
             line=dict(color='white', width=3)
         ),
-        textposition='outside',
-        textinfo='label+percent',
-        textfont=dict(size=14, color='black'),
+        hoverinfo="label+percent+value",
+        textinfo="percent",
+        textposition="inside",
+        textfont=dict(size=15, color="white"),
         hovertemplate='<b>%{label}</b><br>' +
                       'Clientes: %{value:,}<br>' +
                       'Porcentaje: %{percent}<br>' +
@@ -167,7 +168,7 @@ def crear_grafico_distribucion_clientes(clientes_df):
         pull=[0.05 if i == 0 else 0 for i in range(len(segmentos))]  # Destacar el primero
     )])
     
-    # Agregar texto central
+    # Agregar texto central premium
     total_clientes = segmentos.sum()
     fig.add_annotation(
         text=f"<b>{total_clientes:,}</b><br>Clientes",
@@ -176,25 +177,28 @@ def crear_grafico_distribucion_clientes(clientes_df):
         showarrow=False
     )
     
+    # Layout premium con estilo Salesforce
     fig.update_layout(
-        title={
-            'text': 'Distribución de Clientes por Segmento',
-            'font': {'size': 18, 'color': '#2E86AB'},
-            'x': 0.5,
-            'xanchor': 'center'
-        },
+        title=dict(
+            text="Distribución de Clientes por Segmento",
+            font=dict(size=18, color='#2E86AB'),
+            x=0.5
+        ),
         showlegend=True,
         legend=dict(
-            orientation="v",
-            yanchor="middle",
-            y=0.5,
-            xanchor="left",
-            x=1.02,
-            font=dict(size=12)
+            orientation="h", 
+            y=-0.2,
+            font=dict(size=12),
+            bgcolor='rgba(255,255,255,0.8)',
+            bordercolor='#2E86AB',
+            borderwidth=1
         ),
-        template='plotly_white',
-        height=450,
-        margin=dict(l=20, r=150, t=60, b=20)
+        template="plotly_white",
+        height=420,
+        font=dict(family="Arial, sans-serif"),
+        margin=dict(l=50, r=50, t=80, b=80),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
     )
     
     return fig

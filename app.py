@@ -152,61 +152,77 @@ st.markdown("""
         }
     }
 
-    /* ===== TARJETAS KPI CON BRILLO AVANZADO ===== */
+    /* ===== TARJETAS KPI MÁS VIVAS Y PROFESIONALES ===== */
     .metric-card {
-        background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
-        padding: 2.2rem 1.8rem;
-        border-radius: 18px;
-        box-shadow: 
-            0 8px 25px rgba(8, 145, 178, 0.15), 
-            0 4px 12px rgba(6, 214, 160, 0.1),
-            inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 2px solid rgba(8, 145, 178, 0.1);
-        min-height: 180px;
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        border-radius: 14px;
+        padding: 1.5rem;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07);
+        border-left: 5px solid #06D6A0;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        min-height: 160px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        position: relative;
-        overflow: hidden;
     }
 
     .metric-card::before {
         content: '';
         position: absolute;
         top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #0891b2 0%, #06D6A0 50%, #059669 100%);
-        border-radius: 18px 18px 0 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(6, 214, 160, 0.1), 
+            transparent);
+        transition: left 0.6s ease;
     }
 
-    .metric-card::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(45deg, transparent 30%, rgba(8, 145, 178, 0.08) 50%, transparent 70%);
-        transform: rotate(45deg);
-        transition: all 0.6s ease;
-        opacity: 0;
+    .metric-card:hover::before {
+        left: 100%;
     }
 
     .metric-card:hover {
-        transform: translateY(-10px) scale(1.02);
-        box-shadow: 
-            0 20px 40px rgba(8, 145, 178, 0.25), 
-            0 10px 25px rgba(6, 214, 160, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
-        border-color: rgba(8, 145, 178, 0.3);
+        transform: translateY(-5px);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+        border-left: 5px solid #118AB2;
     }
 
-    .metric-card:hover::after {
-        opacity: 1;
-        transform: rotate(45deg) translate(50%, 50%);
+    /* Colores temáticos específicos para cada tarjeta */
+    .metric-card:nth-child(1) {
+        border-left-color: #06D6A0; /* Verde turquesa para Ventas */
+    }
+    .metric-card:nth-child(1):hover {
+        border-left-color: #118AB2;
+        box-shadow: 0 12px 25px rgba(6, 214, 160, 0.15);
+    }
+
+    .metric-card:nth-child(2) {
+        border-left-color: #2563eb; /* Azul para Pedidos */
+    }
+    .metric-card:nth-child(2):hover {
+        border-left-color: #1d4ed8;
+        box-shadow: 0 12px 25px rgba(37, 99, 235, 0.15);
+    }
+
+    .metric-card:nth-child(3) {
+        border-left-color: #d97706; /* Naranja para Ticket */
+    }
+    .metric-card:nth-child(3):hover {
+        border-left-color: #b45309;
+        box-shadow: 0 12px 25px rgba(217, 119, 6, 0.15);
+    }
+
+    .metric-card:nth-child(4) {
+        border-left-color: #7c3aed; /* Morado para Clientes */
+    }
+    .metric-card:nth-child(4):hover {
+        border-left-color: #6d28d9;
+        box-shadow: 0 12px 25px rgba(124, 58, 237, 0.15);
     }
 
     /* Ajuste de las métricas de Streamlit dentro de las tarjetas - FORMATO MEJORADO */
