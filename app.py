@@ -1,35 +1,5 @@
-﻿import streamlit as st
+import streamlit as st
 import pandas as pd
-import sys
-from pathlib import Path
-import io
-import base64
-import plotly.graph_objects as go
-
-# Agregar utils al path
-sys.path.append(str(Path(__file__).parent))
-
-# Importaciones corregidas - SIN crear_analisis_estacionalidad
-from utils.visualizations import (
-    crear_grafico_tendencia_ventas,
-    crear_grafico_distribucion_clientes,
-    crear_grafico_top_productos,
-    crear_heatmap_ventas_mensual,
-    crear_gauge_chart,
-    crear_mapa_correlaciones,
-    crear_waterfall_contribucion,
-    crear_sankey_segmentos,
-    crear_treemap_productos,
-    crear_grafico_pareto,
-    crear_grafico_progreso_objetivos
-)
-
-from utils.metrics import (
-    calcular_metricas_globales,
-    calcular_crecimiento,
-    identificar_productos_estrella,
-    segmentar_clientes_valor
-)
 
 # Configuración de la página
 st.set_page_config(
@@ -221,70 +191,6 @@ st.markdown("""
         border-left: 5px solid #118AB2;
     }
 
-    /* Ajuste de las métricas de Streamlit dentro de las tarjetas */
-    .metric-card [data-testid="stMetricValue"] {
-        font-size: 2.2rem !important;
-        font-weight: 700 !important;
-        color: #2E86AB !important;
-    }
-
-    .metric-card [data-testid="stMetricLabel"] {
-        font-size: 0.95rem !important;
-        font-weight: 600 !important;
-        color: #6C757D !important;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .metric-card [data-testid="stMetricDelta"] {
-        font-size: 0.85rem !important;
-        font-weight: 500 !important;
-    }
-
-    /* ===== TABS MEJORADOS ===== */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 1.5rem;
-        background-color: transparent;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        height: 55px;
-        padding: 0 25px;
-        background-color: #F8F9FA;
-        border-radius: 12px 12px 0 0;
-        font-weight: 600;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .stTabs [data-baseweb="tab"]:hover {
-        background-color: #E9ECEF;
-        transform: translateY(-2px);
-    }
-
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #2E86AB 0%, #06D6A0 100%) !important;
-        color: white !important;
-        box-shadow: 0 4px 12px rgba(46, 134, 171, 0.3);
-    }
-
-    /* ===== MODO RÁPIDO ===== */
-    .fast-mode {
-        border: 2px solid #FFD166;
-        background: linear-gradient(135deg, #FFF9EC 0%, #FFFBF0 100%);
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 12px rgba(255, 209, 102, 0.15);
-        animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { box-shadow: 0 4px 12px rgba(255, 209, 102, 0.15); }
-        50% { box-shadow: 0 6px 20px rgba(255, 209, 102, 0.25); }
-    }
-
     /* ===== AJUSTES GENERALES ===== */
     .stApp {
         background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
@@ -323,134 +229,6 @@ st.markdown("""
         font-size: 2.2rem !important;
         text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
     }
-
-    /* Sidebar mejorado */
-    .css-1d391kg {
-        background-color: #FFFFFF;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Título de sidebar con color del tema */
-    .css-1d391kg h1 {
-        color: #2E86AB !important;
-        font-weight: 700 !important;
-    }
-
-    /* Selectores específicos para h3 en sidebar - MISMO FORMATO QUE TÍTULOS PRINCIPALES */
-    .stSidebar h3 {
-        color: #0891b2 !important;
-        font-weight: 700 !important;
-        text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
-        font-size: 1.5rem !important;
-    }
-
-    div[data-testid="stSidebar"] h3 {
-        color: #0891b2 !important;
-        font-weight: 700 !important;
-        text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
-        font-size: 1.5rem !important;
-    }
-
-    .stSidebar .stMarkdown h3 {
-        color: #0891b2 !important;
-        font-weight: 700 !important;
-        text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
-        font-size: 1.5rem !important;
-    }
-
-    /* Forzar color en todos los h3 de sidebar */
-    .stSidebar h3, .stSidebar h3 *, 
-    div[data-testid="stSidebar"] h3, 
-    div[data-testid="stSidebar"] h3 * {
-        color: #0891b2 !important;
-        font-weight: 700 !important;
-        text-shadow: 2px 2px 4px rgba(8, 145, 178, 0.3) !important;
-        font-size: 1.5rem !important;
-    }
-
-    /* Selectores específicos para h4 en sidebar - TAMAÑO MÁS PEQUEÑO */
-    .stSidebar h4 {
-        color: #0891b2 !important;
-        font-weight: 600 !important;
-        text-shadow: 1px 1px 2px rgba(8, 145, 178, 0.2) !important;
-        font-size: 1.1rem !important;
-        line-height: 1.2 !important;
-    }
-
-    div[data-testid="stSidebar"] h4 {
-        color: #0891b2 !important;
-        font-weight: 600 !important;
-        text-shadow: 1px 1px 2px rgba(8, 145, 178, 0.2) !important;
-        font-size: 1.1rem !important;
-        line-height: 1.2 !important;
-    }
-
-    .stSidebar .stMarkdown h4 {
-        color: #0891b2 !important;
-        font-weight: 600 !important;
-        text-shadow: 1px 1px 2px rgba(8, 145, 178, 0.2) !important;
-        font-size: 1.1rem !important;
-        line-height: 1.2 !important;
-    }
-
-    /* Forzar color en todos los h4 de sidebar */
-    .stSidebar h4, .stSidebar h4 *, 
-    div[data-testid="stSidebar"] h4, 
-    div[data-testid="stSidebar"] h4 * {
-        color: #0891b2 !important;
-        font-weight: 600 !important;
-        text-shadow: 1px 1px 2px rgba(8, 145, 178, 0.2) !important;
-        font-size: 1.1rem !important;
-        line-height: 1.2 !important;
-    }
-
-    # Dentro de tu st.markdown con el CSS, agrega esto al final:
-
-    /* ===== KPI CARDS MEJORADAS (Todo en una tarjeta) ===== */
-
-    /* Sidebar más limpio */
-    .css-1d391kg {
-        background-color: #FFFFFF;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-        padding: 1rem !important;
-    }
-
-    /* Botón de descarga con gradiente */
-    .stDownloadButton > button {
-        background: linear-gradient(135deg, #06D6A0 0%, #059669 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 12px !important;
-        font-weight: 600 !important;
-        padding: 1rem 1.5rem !important;
-        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3) !important;
-        transition: all 0.3s ease !important;
-        font-size: 1rem !important;
-        line-height: 1.2 !important;
-    }
-
-    .stDownloadButton > button:hover {
-        background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4) !important;
-    }
-
-    /* Botones del sidebar */
-    .stButton > button {
-        background: linear-gradient(135deg, #2E86AB 0%, #06D6A0 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 0.6rem 1.2rem;
-        font-weight: 600;
-        box-shadow: 0 4px 10px rgba(46, 134, 171, 0.3);
-        transition: all 0.3s ease;
-    }
-
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(46, 134, 171, 0.4);
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -462,8 +240,8 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- CARGA DE DATOS MEJORADA ---
-@st.cache_data(ttl=3600)  # Cache por 1 hora
+# --- CARGA DE DATOS ---
+@st.cache_data(ttl=3600)
 def load_data():
     """Cargar todos los datasets con validación"""
     try:
@@ -500,57 +278,11 @@ if kpis is None or clientes is None or productos is None:
     st.error("No se pudieron cargar los datos. Verifica los archivos en la carpeta 'data/'.")
     st.stop()
 
-
-
-# Calcular métricas globales
-metricas = calcular_metricas_globales(kpis)
-clientes = segmentar_clientes_valor(clientes)
-
-# --- SIDEBAR SIMPLIFICADA ---
-# Título usando st.markdown con CSS específico
-st.sidebar.markdown("### Panel de Control")
-st.sidebar.markdown("---")
-
-# Solo filtros de fecha
-st.sidebar.markdown("#### 📅 Período de Análisis")
-
-fecha_min = kpis['fecha'].min().date()
-fecha_max = kpis['fecha'].max().date()
-
-fecha_inicio = st.sidebar.date_input(
-    "Fecha inicio",
-    value=fecha_min,
-    min_value=fecha_min,
-    max_value=fecha_max,
-    label_visibility="collapsed"
-)
-
-fecha_fin = st.sidebar.date_input(
-    "Fecha fin",
-    value=fecha_max,
-    min_value=fecha_min,
-    max_value=fecha_max,
-    label_visibility="collapsed"
-)
-
-st.sidebar.markdown("---")
-
-# Botón de exportación con formato mejorado
-csv = kpis.to_csv(index=False)
-st.sidebar.download_button(
-    label="📥 Descargar Reporte\nCSV",
-    data=csv,
-    file_name="reporte_sano_fresco.csv",
-    mime="text/csv",
-    type="primary"
-)
-
-# Variables necesarias
-modo_rapido = False
-mostrar_graficos_pesados = True
-kpis_filtrado = kpis
-metricas_filtradas = metricas
-clientes_filtrados = clientes
+# Calcular métricas básicas
+ventas_totales = kpis['ventas_totales'].sum()
+pedidos_totales = kpis['pedidos_unicos'].sum()
+ticket_promedio = kpis['ticket_promedio'].mean()
+clientes_unicos = kpis['clientes_unicos'].sum()
 
 # --- KPIS PRINCIPALES MEJORADOS ---
 st.markdown("## 📊 Métricas / KPIs")
@@ -560,7 +292,7 @@ col1, col2, col3, col4 = st.columns(4)
 
 # KPI 1: Ventas Totales
 with col1:
-    st.markdown("""
+    st.markdown(f"""
         <div class="metric-card">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 1.5rem; margin-right: 10px;">💰</span>
@@ -569,20 +301,17 @@ with col1:
                 </span>
             </div>
             <div style="font-size: 2.2rem; font-weight: 700; color: #059669; margin: 10px 0;">
-                ${:,.0f}
+                ${ventas_totales:,.0f}
             </div>
             <div style="font-size: 0.9rem; color: #059669; font-weight: 600;">
-                ▲ ${:.1f}M
+                ▲ ${ventas_totales/1000000:.1f}M
             </div>
         </div>
-    """.format(
-        metricas_filtradas['ventas_totales'],
-        metricas_filtradas['ventas_totales']/1000000
-    ), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # KPI 2: Pedidos
 with col2:
-    st.markdown("""
+    st.markdown(f"""
         <div class="metric-card">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 1.5rem; margin-right: 10px;">🛒</span>
@@ -591,20 +320,17 @@ with col2:
                 </span>
             </div>
             <div style="font-size: 2.2rem; font-weight: 700; color: #2563eb; margin: 10px 0;">
-                {:,}
+                {pedidos_totales:,}
             </div>
             <div style="font-size: 0.9rem; color: #2563eb; font-weight: 600;">
-                ▲ {:.0f}/día
+                ▲ {pedidos_totales / max(1, len(kpis)):.0f}/día
             </div>
         </div>
-    """.format(
-        metricas_filtradas['pedidos_totales'],
-        metricas_filtradas['pedidos_totales'] / max(1, metricas_filtradas['dias_operacion'])
-    ), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # KPI 3: Ticket Promedio
 with col3:
-    st.markdown("""
+    st.markdown(f"""
         <div class="metric-card">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 1.5rem; margin-right: 10px;">🎫</span>
@@ -613,17 +339,17 @@ with col3:
                 </span>
             </div>
             <div style="font-size: 2.2rem; font-weight: 700; color: #d97706; margin: 10px 0;">
-                ${:.2f}
+                ${ticket_promedio:.2f}
             </div>
             <div style="font-size: 0.9rem; color: #d97706; font-weight: 600;">
                 ◆ Objetivo: $25.00
             </div>
         </div>
-    """.format(metricas_filtradas['ticket_promedio']), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # KPI 4: Clientes Únicos
 with col4:
-    st.markdown("""
+    st.markdown(f"""
         <div class="metric-card">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 1.5rem; margin-right: 10px;">👥</span>
@@ -632,249 +358,68 @@ with col4:
                 </span>
             </div>
             <div style="font-size: 2.2rem; font-weight: 700; color: #7c3aed; margin: 10px 0;">
-                {:,}
+                {clientes_unicos:,}
             </div>
             <div style="font-size: 0.9rem; color: #7c3aed; font-weight: 600;">
-                ▲ {:,} registrados
+                ▲ {len(clientes):,} registrados
             </div>
         </div>
-    """.format(
-        metricas_filtradas['clientes_unicos'],
-        len(clientes_filtrados)
-    ), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 st.markdown("---")
 
 # --- SECCIÓN: TENDENCIAS ---
 st.markdown("## 📈 Análisis de Tendencias")
 
-if not modo_rapido:
-    col1, col2 = st.columns(2)
+col1, col2 = st.columns(2)
 
-    with col1:
-        st.plotly_chart(
-            crear_grafico_tendencia_ventas(kpis_filtrado),
-            use_container_width=True
-        )
+with col1:
+    # Gráfico de tendencia de ventas usando Streamlit nativo
+    st.subheader("Evolución de Ventas")
+    st.line_chart(kpis.set_index('fecha')['ventas_totales'])
 
-    with col2:
-        st.plotly_chart(
-            crear_grafico_distribucion_clientes(clientes_filtrados),
-            use_container_width=True
-        )
-else:
-    # En modo rápido, solo mostrar el gráfico principal
-    st.plotly_chart(
-        crear_grafico_tendencia_ventas(kpis_filtrado),
-        use_container_width=True
-    )
+with col2:
+    # Análisis de clientes
+    if 'segmento' in clientes.columns:
+        st.subheader("Distribución de Clientes")
+        segmentos = clientes['segmento'].value_counts()
+        st.bar_chart(segmentos)
+    else:
+        st.subheader("Análisis de Clientes")
+        st.metric("Total Clientes", f"{len(clientes):,}")
 
+# --- ANÁLISIS DE PRODUCTOS ---
+st.markdown("## 🏆 Análisis de Productos")
 
-# --- ANÁLISIS DE PRODUCTOS MEJORADO ---
-st.markdown("## 🏆 Análisis Profundo de Productos")
+# Top productos por ventas
+top_productos = productos.nlargest(10, 'ventas_totales')
 
-if not modo_rapido:
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📊 Top Ventas", 
-        "🔥 Más Frecuentes", 
-        "💎 Mayor Precio",
-        "💰 Cascada Contribución",
-        "📊 Análisis Pareto"
-    ])
+st.subheader("Top 10 Productos por Ventas")
+st.bar_chart(top_productos.set_index('nombre_producto')['ventas_totales'])
 
-    with tab1:
-        # Crear gráfico directamente con ordenamiento garantizado
-        top_ventas = productos.nlargest(15, 'ventas_totales')
-        fig = go.Figure(data=[
-            go.Bar(
-                y=top_ventas['nombre_producto'],
-                x=top_ventas['ventas_totales'],
-                orientation='h',
-                text=top_ventas['ventas_totales'],
-                texttemplate='<b>$%{text:,.0f}</b>',
-                textposition='outside',
-                marker=dict(
-                    color='#0891b2',  # Color del tema
-                    line=dict(color='#047857', width=3),  # Borde grueso para efecto
-                    # Efecto Power BI con esquinas redondeadas
-                    cornerradius=8  # Esquinas redondeadas para efecto moderno
-                )
-            )
-        ])
-        fig.update_layout(
-            xaxis_title='Ventas Totales ($)',
-            yaxis_title='',
-            height=500,
-            font=dict(size=12, family='Arial, sans-serif'),
-            margin=dict(l=60, r=60, t=40, b=60),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            showlegend=False,
-            yaxis={'categoryorder':'total ascending'},
-            xaxis=dict(
-                gridcolor='rgba(0,0,0,0.1)',
-                showgrid=True
-            ),
-            # Efecto Power BI con sombra
-            barmode='group',
-            bargap=0.3
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    with tab2:
-        # Crear gráfico directamente con ordenamiento garantizado
-        top_pedidos = productos.nlargest(15, 'pedidos_unicos')
-        fig = go.Figure(data=[
-            go.Bar(
-                y=top_pedidos['nombre_producto'],
-                x=top_pedidos['pedidos_unicos'],
-                orientation='h',
-                text=top_pedidos['pedidos_unicos'],
-                texttemplate='<b>%{text:,.0f}</b>',
-                textposition='outside',
-                marker=dict(
-                    color='#06D6A0',  # Verde turquesa del tema
-                    line=dict(color='#047857', width=3),  # Borde grueso para efecto
-                    # Efecto Power BI con esquinas redondeadas
-                    cornerradius=8  # Esquinas redondeadas para efecto moderno
-                )
-            )
-        ])
-        fig.update_layout(
-            xaxis_title='Pedidos Únicos',
-            yaxis_title='',
-            height=500,
-            font=dict(size=12, family='Arial, sans-serif'),
-            margin=dict(l=60, r=60, t=40, b=60),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            showlegend=False,
-            yaxis={'categoryorder':'total ascending'},
-            xaxis=dict(
-                gridcolor='rgba(0,0,0,0.1)',
-                showgrid=True
-            )
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    with tab3:
-        # Crear gráfico directamente con ordenamiento garantizado
-        top_precio = productos.nlargest(15, 'precio_promedio')
-        fig = go.Figure(data=[
-            go.Bar(
-                y=top_precio['nombre_producto'],
-                x=top_precio['precio_promedio'],
-                orientation='h',
-                text=top_precio['precio_promedio'],
-                texttemplate='<b>$%{text:.2f}</b>',
-                textposition='outside',
-                marker=dict(
-                    color='#059669',  # Verde del tema
-                    line=dict(color='#047857', width=3),  # Borde grueso para efecto
-                    # Efecto Power BI con esquinas redondeadas
-                    cornerradius=8  # Esquinas redondeadas para efecto moderno
-                )
-            )
-        ])
-        fig.update_layout(
-            xaxis_title='Precio Promedio ($)',
-            yaxis_title='',
-            height=500,
-            font=dict(size=12, family='Arial, sans-serif'),
-            margin=dict(l=60, r=60, t=40, b=60),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            showlegend=False,
-            yaxis={'categoryorder':'total ascending'},
-            xaxis=dict(
-                gridcolor='rgba(0,0,0,0.1)',
-                showgrid=True
-            )
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    with tab4:
-        st.plotly_chart(
-            crear_waterfall_contribucion(productos, 10),
-            use_container_width=True
-        )
-        st.info("💡 **Insight:** Este gráfico muestra cómo cada producto contribuye al total de ventas.")
-
-    with tab5:
-        st.plotly_chart(
-            crear_grafico_pareto(productos),
-            use_container_width=True
-        )
-        st.warning("⚠️ **Regla 80/20:** Identifica qué productos generan el 80% de tus ingresos.")
-else:
-    # En modo rápido, solo mostrar pestañas esenciales
-    tab1, tab2 = st.tabs(["📊 Top Ventas", "📈 Análisis Pareto"])
-    
-    with tab1:
-        st.plotly_chart(
-            crear_grafico_top_productos(productos, 'ventas_totales', 10),
-            use_container_width=True
-        )
-    
-    with tab2:
-        st.plotly_chart(
-            crear_grafico_pareto(productos),
-            use_container_width=True
-        )
-
-# --- VISUALIZACIONES AVANZADAS ---
-if not modo_rapido and mostrar_graficos_pesados:
-    st.markdown("---")
-    st.markdown("## 🗺️ Visualizaciones Avanzadas")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        with st.spinner('Generando diagrama Sankey...'):
-            st.plotly_chart(
-                crear_sankey_segmentos(clientes_filtrados),
-                use_container_width=True
-            )
-
-    with col2:
-        st.plotly_chart(
-            crear_treemap_productos(productos),
-            use_container_width=True
-        )
-
-# --- HEATMAP ---
-if not modo_rapido:
-    st.markdown("## 🗓️ Patrón de Ventas Semanal")
-    st.plotly_chart(
-        crear_heatmap_ventas_mensual(kpis_filtrado),
-        use_container_width=True
-    )
-
-# --- ANÁLISIS DE CORRELACIONES (AL FINAL) ---
-if not modo_rapido and mostrar_graficos_pesados:
-    st.markdown("---")
-    st.markdown("## 🔗 Mapa de Correlaciones")
-    with st.spinner('Calculando correlaciones...'):
-        st.plotly_chart(
-            crear_mapa_correlaciones(kpis_filtrado),
-            use_container_width=True
-        )
-
-# --- OBJETIVOS (AL FINAL) ---
-st.markdown("---")
-st.markdown("## 🎯 Progreso vs Objetivos")
-
-# Objetivos más realistas basados en tus datos
-objetivos = {
-    'ventas': 5000000,      # 5 millones
-    'pedidos': 250000,      # 250 mil pedidos (ajustado)
-    'clientes': 15000       # 15 mil clientes (ajustado)
-}
-
-st.plotly_chart(
-    crear_grafico_progreso_objetivos(metricas_filtradas, objetivos),
+# Tabla de productos
+st.subheader("Detalles de Productos")
+st.dataframe(
+    top_productos[['nombre_producto', 'ventas_totales', 'unidades_vendidas', 'precio_promedio']].round(2),
     use_container_width=True
 )
+
+# --- ANÁLISIS ADICIONAL ---
+st.markdown("## 📊 Análisis Adicional")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric("Días de Operación", len(kpis))
+    st.metric("Productos Únicos", len(productos))
+
+with col2:
+    st.metric("Ventas Promedio Diaria", f"${ventas_totales/len(kpis):,.0f}")
+    st.metric("Pedidos Promedio Diario", f"{pedidos_totales/len(kpis):,.0f}")
+
+with col3:
+    st.metric("Unidades Vendidas", f"{kpis['unidades_vendidas'].sum():,}")
+    st.metric("Productos por Pedido", f"{kpis['productos_por_pedido'].mean():.1f}")
 
 # --- FOOTER ---
 st.markdown("---")
@@ -885,81 +430,3 @@ st.markdown("""
     <p style='color: #6c757d; font-size: 0.9rem;'>🐍 Desarrollado con Python | ⚡ Powered by Streamlit | 📈 Visualización Interactiva</p>
 </div>
 """, unsafe_allow_html=True)
-
-# JavaScript AGRESIVO para forzar el color del título de sidebar
-st.markdown("""
-<script>
-// Función para aplicar estilos AGRESIVAMENTE a h3 y h4
-function forceSidebarTitleColor() {
-    // Buscar TODOS los elementos h3 posibles
-    const h3Selectors = [
-        '.stSidebar h3',
-        'div[data-testid="stSidebar"] h3',
-        '.stSidebar .stMarkdown h3',
-        'h3[data-testid="stSidebar"]',
-        '.stSidebar h3 *',
-        'div[data-testid="stSidebar"] h3 *'
-    ];
-    
-    h3Selectors.forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(element => {
-            element.style.setProperty('color', '#0891b2', 'important');
-            element.style.setProperty('font-weight', '700', 'important');
-            element.style.setProperty('text-shadow', '2px 2px 4px rgba(8, 145, 178, 0.3)', 'important');
-            element.style.setProperty('font-size', '1.5rem', 'important');
-        });
-    });
-    
-    // Buscar TODOS los elementos h4 posibles (más pequeños)
-    const h4Selectors = [
-        '.stSidebar h4',
-        'div[data-testid="stSidebar"] h4',
-        '.stSidebar .stMarkdown h4',
-        'h4[data-testid="stSidebar"]',
-        '.stSidebar h4 *',
-        'div[data-testid="stSidebar"] h4 *'
-    ];
-    
-    h4Selectors.forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(element => {
-            element.style.setProperty('color', '#0891b2', 'important');
-            element.style.setProperty('font-weight', '600', 'important');
-            element.style.setProperty('text-shadow', '1px 1px 2px rgba(8, 145, 178, 0.2)', 'important');
-            element.style.setProperty('font-size', '1.1rem', 'important');
-            element.style.setProperty('line-height', '1.2', 'important');
-        });
-    });
-    
-    // Buscar por texto específico y aplicar a TODOS los elementos
-    const allElements = document.querySelectorAll('*');
-    allElements.forEach(element => {
-        if (element.textContent && element.textContent.includes('Panel de Control')) {
-            element.style.setProperty('color', '#0891b2', 'important');
-            element.style.setProperty('font-weight', '700', 'important');
-            element.style.setProperty('text-shadow', '2px 2px 4px rgba(8, 145, 178, 0.3)', 'important');
-            element.style.setProperty('font-size', '1.5rem', 'important');
-        }
-        if (element.textContent && element.textContent.includes('Período de Análisis')) {
-            element.style.setProperty('color', '#0891b2', 'important');
-            element.style.setProperty('font-weight', '600', 'important');
-            element.style.setProperty('text-shadow', '1px 1px 2px rgba(8, 145, 178, 0.2)', 'important');
-            element.style.setProperty('font-size', '1.1rem', 'important');
-            element.style.setProperty('line-height', '1.2', 'important');
-        }
-    });
-}
-
-// Ejecutar múltiples veces para asegurar que se aplique
-setTimeout(forceSidebarTitleColor, 500);
-setTimeout(forceSidebarTitleColor, 1000);
-setTimeout(forceSidebarTitleColor, 2000);
-setTimeout(forceSidebarTitleColor, 3000);
-
-// También ejecutar cuando cambie el DOM
-const observer = new MutationObserver(forceSidebarTitleColor);
-observer.observe(document.body, { childList: true, subtree: true });
-</script>
-""", unsafe_allow_html=True)
-
