@@ -38,4 +38,4 @@ El dashboard analiza:
 - Análisis de productos estrella
 
 ---
-*Desarrollado con ❤️ usando Python y Streamlit*
+*Desarrollado con Python y Streamlit*
